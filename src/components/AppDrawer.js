@@ -1,30 +1,51 @@
 import React from 'react';
-import { Drawer, AppBar, Toolbar, Typography, Grid, Tabs, Tab, List, Button, ListItem, ListItemText, FormControlLabel, TextField, Select, ListItemSecondaryAction, IconButton, Paper, ListItemIcon } from '@material-ui/core';
+import { Drawer, AppBar, Toolbar, Typography, Grid, Tabs, Tab, List, Button, ListItem,
+     ListItemText, FormControlLabel, TextField, Select, ListItemSecondaryAction, IconButton,
+      Paper, ListItemIcon, Avatar, MenuItem } from '@material-ui/core';
 
 import DeleteIcon from '@material-ui/icons/Delete';
 import PersonIcon from '@material-ui/icons/Person';
 import ScriptIcon from '@material-ui/icons/Book';
 import ArrowForwardIcon from '@material-ui/icons/ArrowForward';
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
+import InsertPhotoIcon from '@material-ui/icons/InsertPhoto';
+
+import GetCastMemberIdFromMap from '../utilties/GetCastMemberIdFromMap';
 
 let BillingSelect = (props) => {
     return (
-        <Select onChange={props.onChange} value={props.value} name="Billing">
-            <option value="principle"> Principle </option>
-            <option value="lead"> Lead </option>
-            <option value="ensemble"> Ensemble </option>
+        <Select style={{marginLeft: '8px', marginRight: '8px'}} onChange={props.onChange} value={props.value} name="Billing">
+            <MenuItem value="principle"> Principle </MenuItem>
+            <MenuItem value="lead"> Lead </MenuItem>
+            <MenuItem value="ensemble"> Ensemble </MenuItem>
         </Select>
     )
+}
+
+let HeadshotListItemIcon = (props) => {
+    if (props.headshot === undefined) {
+        return (
+            <ListItemIcon>
+                <PersonIcon/>
+            </ListItemIcon>
+        )
+    }
+
+    else {
+        return (
+            <Avatar src={'data:image/jpg;base64,' + props.headshot }/>
+        )
+    }
 }
 
 let CastMemberSelect = (props) => {
     let options = props.castMembers.map( item => {
         return (
-            <option value={item.uid}> {item.name} </option>
+            <MenuItem key={item.uid} value={item.uid}> {item.name} </MenuItem>
         )
     });
 
-    options.unshift(<option value={-1}> Track Cut </option>);
+    options.unshift(<MenuItem key={-1} value={-1}> Track Cut </MenuItem>);
 
     return (
         <Select onChange={props.onChange} value={props.value}>
@@ -103,7 +124,9 @@ class AppDrawer extends React.Component {
                 <ListItem key={item.uid}>
                     <ListItemText primary={item.name}/>
                     <ListItemSecondaryAction>
-                        <CastMemberSelect castMembers={this.props.castMembers} value={-1}/>
+                        <CastMemberSelect castMembers={this.props.castMembers}
+                         value={GetCastMemberIdFromMap(this.props.castChangeMap, item.uid)}
+                         onChange={(e) => {this.props.onCastChange(item.uid, e.target.value)}}/>
                     </ListItemSecondaryAction>
                 </ListItem>
             )
@@ -116,7 +139,7 @@ class AppDrawer extends React.Component {
         return (
             <React.Fragment>
                     <Button variant="contained" onClick={this.props.onAddCastMemberButtonClick}> Add Cast Member </Button>
-                    <List style={{ width: '75%' }}>
+                    <List style={{ width: '100%' }}>
                         {this.getCastMembersJSX()}
                     </List>                
             </React.Fragment>
@@ -143,7 +166,7 @@ class AppDrawer extends React.Component {
                         <ScriptIcon/>
                     </ListItemIcon>
 
-                    <TextField label="Character" value={item.name} onChange={(e) => {this.props.onRoleNameChange(item.uid, e.target.value)}}/>
+                    <TextField label="Character" defaultValue={item.name} onBlur={(e) => {this.props.onRoleNameChange(item.uid, e.target.value)}}/>
 
                     <ListItemSecondaryAction>
                         <IconButton onClick={() => {this.props.onDeleteRoleButtonClick(item.uid)}}>
@@ -161,20 +184,21 @@ class AppDrawer extends React.Component {
         let jsx = this.props.castMembers.map( item => {
             return (
                 <ListItem key={item.uid}>
-                    <ListItemIcon>
-                        <PersonIcon/>
-                    </ListItemIcon>
+                    <HeadshotListItemIcon headshot={item.headshot}/>
                     <Grid container
                     direction="row"
-                    justify="space-around">
-                        <TextField label="Name" defaultValue={item.name} onChange={(e) => {this.props.onCastMemberNameChange(item.uid, e.target.value)}}/>
+                    justify="flex-start">
+                        <TextField label="Name" defaultValue={item.name} onBlur={(e) => {this.props.onCastMemberNameChange(item.uid, e.target.value)}}/>
                         <BillingSelect value={item.billing} onChange={(e) => {this.props.onCastMemberBillingChange(item.uid, e.target.value)}}/>
                     </Grid>
                     
 
                     <ListItemSecondaryAction>
-                        <IconButton onClick={() => {this.props.onCastMemberDeleteButtonClick(item.uid)}}>
-                            <DeleteIcon/>
+                        <IconButton onClick={() => { this.props.onAddHeadshotButtonClick(item.uid) }}>
+                            <InsertPhotoIcon />
+                        </IconButton>
+                        <IconButton onClick={() => { this.props.onCastMemberDeleteButtonClick(item.uid) }}>
+                            <DeleteIcon />
                         </IconButton>
                     </ListItemSecondaryAction>
 

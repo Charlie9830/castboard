@@ -4,8 +4,8 @@ let Slide = (props) => {
     let containerStyle = {
         display: props.visible === true ? "grid" : "none",
         gridTemplateRows: '[Title] 164px [Content]auto',
-        width: '1920px',
-        height: '1080px',
+        width: '100%',
+        height: '100%',
         backgroundImage: `url(${props.backgroundImageSrc})`,
         backgroundRepeat: 'no-repeat',
         margin: '0px',

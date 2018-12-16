@@ -50,11 +50,13 @@ class App extends Component {
           onNextSlideButtonClick={this.props.onNextSlideButtonClick}
           onPrevSlideButtonClick={this.props.onPrevSlideButtonClick}
           currentSlide={this.props.currentSlide}
-          />
+          onAddHeadshotButtonClick={this.props.onAddHeadshotButtonClick}
+          onCastChange={this.props.onCastChange}
+          castChangeMap={this.props.castChangeMap}/>
         </div>
 
         <div className="AppContentContainer">
-          {slideJSX}
+          
         </div>
         
       </div>

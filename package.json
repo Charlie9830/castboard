@@ -18,6 +18,8 @@
     "postpackage": "electron-packager ./ --out=./builds"
   },
   "devDependencies": {
+    "@babel/plugin-syntax-object-rest-spread": "^7.2.0",
+    "@babel/plugin-transform-async-to-generator": "^7.2.0",
     "babel-core": "^6.24.1",
     "babel-loader": "^7.1.2",
     "babel-preset-react": "^6.24.1",
@@ -37,6 +39,9 @@
   "dependencies": {
     "@material-ui/core": "^3.6.2",
     "@material-ui/icons": "^3.0.1",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "dexie": "^2.0.4",
+    "fs-jetpack": "^2.2.0",
     "uuid": "^3.3.2"
   }
 }
