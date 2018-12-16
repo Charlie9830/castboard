@@ -21,6 +21,8 @@ function createWindow() {
     width: 1024, height: 768, show: false
   });
 
+  mainWindow.maximize();
+
   // and load the index.html of the app.
   let indexPath;
   if ( dev && process.argv.indexOf('--noDevServer') === -1 ) {

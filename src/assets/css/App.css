@@ -1,4 +1,19 @@
-h1 {
-  font-family: helvetica;
-  font-weight: 200;
+body {
+  width: 100%;
+  height: 100%;
+  padding: 0px;
+  margin: 0px;
+}
+
+.App {
+  display: grid;
+  grid-template-columns: [Drawer]600px [Content]1fr;
+}
+
+.AppDrawerContainer {
+  grid-column: Drawer;
+}
+
+.AppContentContainer {
+  grid-column: Content;
 }
