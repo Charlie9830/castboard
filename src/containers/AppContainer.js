@@ -2,7 +2,13 @@ import React from 'react';
 import App from '../components/App';
 import Dexie from 'dexie';
 import jetpack from 'fs-jetpack';
+import TryShiftItemForward from '../utilties/TryShiftItemForward';
+import TryShiftItemBackward from '../utilties/TryShiftItemBackward';
 const { dialog } = require('electron').remote;
+
+import { MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles';
+import PrimaryColor from '@material-ui/core/colors/blue';
+import SecondaryColor from '@material-ui/core/colors/deepPurple';
 
 import CastMemberFactory from '../factories/CastMemberFactory';
 import RoleFactory from '../factories/RoleFactory';
@@ -25,6 +31,19 @@ mainDB.on('populate', () => {
 
 const castChangeId = "0";
 const themeId = "0";
+
+const muiTheme = createMuiTheme({
+    palette: {
+        type: 'dark',
+        primary: PrimaryColor,
+        secondary: SecondaryColor,
+        background: {
+            paper: 'rgb(42,42,42)',
+            default: 'rgb(27,27,27)',
+            
+        }
+    }
+})
 
 class AppContainer extends React.Component {
     constructor(props) {
@@ -73,6 +92,14 @@ class AppContainer extends React.Component {
         this.handleSlideTitleChange = this.handleSlideTitleChange.bind(this);
         this.handleSlideTitleFontStyleChange = this.handleSlideTitleFontStyleChange.bind(this);
         this.handleCastRowRoleDeleteButtonClick = this.handleCastRowRoleDeleteButtonClick.bind(this);
+        this.handleCastRowDeleteButtonClick = this.handleCastRowDeleteButtonClick.bind(this);
+        this.handleCastRowRoleShiftUpButtonClick = this.handleCastRowRoleShiftUpButtonClick.bind(this);
+        this.handleCastRowRoleShiftDownButtonClick = this.handleCastRowRoleShiftDownButtonClick.bind(this);
+        this.handlePrincipleFontStyleChange = this.handlePrincipleFontStyleChange.bind(this);
+        this.handleLeadFontStyleChange = this.handleLeadFontStyleChange.bind(this);
+        this.handleEnsembleFontStyleChange = this.handleEnsembleFontStyleChange.bind(this);
+        this.handleHeadshotBorderStrokeWidthChange = this.handleHeadshotBorderStrokeWidthChange.bind(this);
+        this.handleHeadshotBorderColorChange = this.handleHeadshotBorderColorChange.bind(this);
     }
 
     componentDidMount() {
@@ -129,45 +156,247 @@ class AppContainer extends React.Component {
 
     render() {
         return (
-            <App currentSlide={this.state.currentSlide}
-            onNextSlideButtonClick={this.handleNextSlideButtonClick}
-            onPrevSlideButtonClick={this.handlePrevSlideButtonClick}
-            onAddCastMemberButtonClick={this.handleAddCastMemberButtonClick}
-            castMembers={this.state.castMembers}
-            onCastMemberNameChange={this.handleCastMemberNameChange}
-            onCastMemberBillingChange={this.handleCastMemberBillingChange}
-            onCastMemberDeleteButtonClick={this.handleCastMemberDeleteButtonClick}
-            onAddRoleButtonClick={this.handleAddRoleButtonClick}
-            roles={this.state.roles}
-            onDeleteRoleButtonClick={this.handleDeleteRoleButtonClick}
-            onRoleNameChange={this.handleRoleNameChange}
-            onAddHeadshotButtonClick={this.handleAddHeadshotButtonClick}
-            onCastChange={this.handleCastChange}
-            castChangeMap={this.state.castChangeMap}
-            onAddSlideButtonClick={this.handleAddSlideButtonClick}
-            slides={this.state.slides}
-            onSlideNameChange={this.handleSlideNameChange}
-            onSlideTypeChange={this.handleSlideTypeChange}
-            onDeleteSlideButtonClick={this.handleDeleteSlideButtonClick}
-            onSlideSelect={this.handleSlideSelect}
-            selectedSlideId={this.state.selectedSlideId}
-            onChooseTitleSlideImageButtonClick={this.handleChooseTitleSlideImageButtonClick}
-            onChooseBackgroundImageButtonClick={this.handleChooseBackgroundImageButtonClick}
-            theme={this.state.theme}
-            onInformationTextChange={this.handleInformationTextChange}
-            onInformationTextFontStyleChange={this.handleInformationTextFontStyleChange}
-            onBaseFontStyleChange={this.handleBaseFontStyleChange}
-            onAddRowToSlideButtonClick={this.handleAddRowToSlideButtonClick}
-            onAddRoleToCastRowButtonClick={this.handleAddRoleToCastRowButtonClick}
-            roleSelectDialog={this.state.roleSelectDialog}
-            onSlideTitleChange={this.handleSlideTitleChange}
-            onSlideTitleFontStyleChange={this.handleSlideTitleFontStyleChange}
-            onCastRowRoleDeleteButtonClick={this.handleCastRowRoleDeleteButtonClick}/>
+            <MuiThemeProvider theme={muiTheme}>
+                <App currentSlide={this.state.currentSlide}
+                    onNextSlideButtonClick={this.handleNextSlideButtonClick}
+                    onPrevSlideButtonClick={this.handlePrevSlideButtonClick}
+                    onAddCastMemberButtonClick={this.handleAddCastMemberButtonClick}
+                    castMembers={this.state.castMembers}
+                    onCastMemberNameChange={this.handleCastMemberNameChange}
+                    onCastMemberBillingChange={this.handleCastMemberBillingChange}
+                    onCastMemberDeleteButtonClick={this.handleCastMemberDeleteButtonClick}
+                    onAddRoleButtonClick={this.handleAddRoleButtonClick}
+                    roles={this.state.roles}
+                    onDeleteRoleButtonClick={this.handleDeleteRoleButtonClick}
+                    onRoleNameChange={this.handleRoleNameChange}
+                    onAddHeadshotButtonClick={this.handleAddHeadshotButtonClick}
+                    onCastChange={this.handleCastChange}
+                    castChangeMap={this.state.castChangeMap}
+                    onAddSlideButtonClick={this.handleAddSlideButtonClick}
+                    slides={this.state.slides}
+                    onSlideNameChange={this.handleSlideNameChange}
+                    onSlideTypeChange={this.handleSlideTypeChange}
+                    onDeleteSlideButtonClick={this.handleDeleteSlideButtonClick}
+                    onSlideSelect={this.handleSlideSelect}
+                    selectedSlideId={this.state.selectedSlideId}
+                    onChooseTitleSlideImageButtonClick={this.handleChooseTitleSlideImageButtonClick}
+                    onChooseBackgroundImageButtonClick={this.handleChooseBackgroundImageButtonClick}
+                    theme={this.state.theme}
+                    onInformationTextChange={this.handleInformationTextChange}
+                    onInformationTextFontStyleChange={this.handleInformationTextFontStyleChange}
+                    onBaseFontStyleChange={this.handleBaseFontStyleChange}
+                    onAddRowToSlideButtonClick={this.handleAddRowToSlideButtonClick}
+                    onAddRoleToCastRowButtonClick={this.handleAddRoleToCastRowButtonClick}
+                    roleSelectDialog={this.state.roleSelectDialog}
+                    onSlideTitleChange={this.handleSlideTitleChange}
+                    onSlideTitleFontStyleChange={this.handleSlideTitleFontStyleChange}
+                    onCastRowRoleDeleteButtonClick={this.handleCastRowRoleDeleteButtonClick}
+                    onCastRowDeleteButtonClick={this.handleCastRowDeleteButtonClick}
+                    onCastRowRoleShiftUpButtonClick={this.handleCastRowRoleShiftUpButtonClick}
+                    onCastRowRoleShiftDownButtonClick={this.handleCastRowRoleShiftDownButtonClick}
+                    onPrincipleFontStyleChange={this.handlePrincipleFontStyleChange}
+                    onLeadFontStyleChange={this.handleLeadFontStyleChange}
+                    onEnsembleFontStyleChange={this.handleEnsembleFontStyleChange}
+                    onHeadshotBorderStrokeWidthChange={this.handleHeadshotBorderStrokeWidthChange}
+                    onHeadshotBorderColorChange={this.handleHeadshotBorderColorChange} />
+            </MuiThemeProvider>
+            
         )
     }
 
-    handleCastRowRoleDeleteButtonClick(slideId, castRowId, roleId) {
+    handleHeadshotBorderColorChange(newValue) {
+        let theme = {...this.state.theme};
 
+        theme.headshotBorderColor = newValue;
+
+        this.setState({theme: theme});
+
+        mainDB.theme.update(themeId, { headshotBorderColor: newValue }).then( () => {
+
+        })
+    }
+
+    handleHeadshotBorderStrokeWidthChange(newValue) {
+        let theme = {...this.state.theme};
+
+        theme.headshotBorderStrokeWidth = newValue;
+
+        this.setState({theme: theme});
+
+        mainDB.theme.update(themeId, { headshotBorderStrokeWidth: newValue }).then( () => {
+
+        })
+    }
+
+    handlePrincipleFontStyleChange(newValue, controlName) {
+        let theme = {...this.state.theme};
+
+        let propertyName = "";
+        if (controlName === "actor") {
+            propertyName = "principleActorFontStyle";
+        }
+
+        else {
+            propertyName = "principleRoleFontStyle";
+        }
+        
+        theme[propertyName] = newValue;
+
+        this.setState({theme: theme});
+
+        let updateObject = {};
+        updateObject[propertyName] = newValue;
+        mainDB.theme.update(themeId, updateObject).then( () => {
+
+        })
+    }
+
+    handleLeadFontStyleChange(newValue, controlName) {
+        let theme = {...this.state.theme};
+
+        let propertyName = "";
+        if (controlName === "actor") {
+            propertyName = "leadActorFontStyle";
+        }
+
+        else {
+            propertyName = "leadRoleFontStyle";
+        }
+        
+        theme[propertyName] = newValue;
+
+        this.setState({theme: theme});
+
+        let updateObject = {};
+        updateObject[propertyName] = newValue;
+        mainDB.theme.update(themeId, updateObject).then( () => {
+
+        })
+    }
+
+    handleEnsembleFontStyleChange(newValue, controlName) {
+        let theme = {...this.state.theme};
+
+        let propertyName = "";
+        if (controlName === "actor") {
+            propertyName = "ensembleActorFontStyle";
+        }
+
+        else {
+            propertyName = "ensembleRoleFontStyle";
+        }
+        
+        theme[propertyName] = newValue;
+
+        this.setState({theme: theme});
+
+        let updateObject = {};
+        updateObject[propertyName] = newValue;
+        mainDB.theme.update(themeId, updateObject).then( () => {
+
+        })
+    }
+
+    handleCastRowRoleShiftDownButtonClick(slideId, castRowId, roleId) {
+        let slides = [...this.state.slides];
+        let slide = slides.find(item => {
+            return item.uid === slideId;
+        })
+
+        let castRow = slide.castRows.find(item => {
+            return item.uid === castRowId;
+        })
+
+        let roleIndex = castRow.roles.findIndex(item => {
+            return item.uid === roleId;
+        })
+
+        if (roleIndex !== -1) {
+            castRow.roles = TryShiftItemBackward(roleIndex, castRow.roles);
+
+            this.setState({ slides: slides});
+
+            // Update Database.
+            mainDB.slides.update(slideId, { castRows: slide.castRows }).then( () => {
+
+            });
+        }
+    }
+
+    handleCastRowRoleShiftUpButtonClick(slideId, castRowId, roleId) {
+        let slides = [...this.state.slides];
+        let slide = slides.find(item => {
+            return item.uid === slideId;
+        })
+
+        let castRow = slide.castRows.find(item => {
+            return item.uid === castRowId;
+        })
+
+        let roleIndex = castRow.roles.findIndex(item => {
+            return item.uid === roleId;
+        })
+
+        if (roleIndex !== -1) {
+            castRow.roles = TryShiftItemForward(roleIndex, castRow.roles);
+
+            this.setState({ slides: slides});
+
+            // Update Database.
+            mainDB.slides.update(slideId, { castRows: slide.castRows }).then( () => {
+
+            });
+        }
+    }
+
+    handleCastRowDeleteButtonClick(slideId, rowId) {
+        let slides = [...this.state.slides];
+        let slide = slides.find(item => {
+            return item.uid === slideId;
+        })
+
+        let castRowIndex = slide.castRows.findIndex(item => {
+            return item.uid === rowId;
+        })
+
+        if (castRowIndex !== -1) {
+            slide.castRows.splice(castRowIndex, 1);
+
+            this.setState({slides: slides});
+
+            // Update Database.
+            mainDB.slides.update(slideId, { castRows: slide.castRows }).then( () => {
+
+            });
+        }
+
+
+    }
+
+    handleCastRowRoleDeleteButtonClick(slideId, castRowId, roleId) {
+        let slides = [...this.state.slides];
+        let slide = slides.find(item => {
+            return item.uid === slideId;
+        })
+
+        let castRow = slide.castRows.find(item => {
+            return item.uid === castRowId;
+        })
+
+        let roleIndex = castRow.roles.find(item => {
+            return item.uid === roleId;
+        })
+
+        if (roleIndex !== -1) {
+            castRow.roles.splice(roleIndex, 1);
+
+            this.setState({ slides: slides });
+        }
+
+        // Update Database.
+        mainDB.slides.update(slideId, { castRows: slide.castRows }).then( () => {
+
+        });
     }
 
     handleSlideTitleChange(uid, newValue) {
@@ -579,7 +808,7 @@ class AppContainer extends React.Component {
 
     handleAddCastMemberButtonClick() {
         let castMembers = [...this.state.castMembers];
-        let newCastMember = CastMemberFactory("", "ensemble");
+        let newCastMember = CastMemberFactory("", "ensemble", "");
         castMembers.push(newCastMember);
 
         this.setState({castMembers: castMembers });

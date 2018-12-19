@@ -2,7 +2,8 @@ import React from 'react';
 import { Grid, FormControlLabel, TextField, Checkbox, Paper, Popover, IconButton } from '@material-ui/core';
 import '../assets/css/FontStylePicker.css';
 import EditIcon from '@material-ui/icons/Create';
-import ColorIcon from '@material-ui/icons/ColorLens';
+import ColorPicker from './ColorPicker';
+
 
 let FontSizeField = (props) => {
     return (
@@ -86,10 +87,7 @@ class FontStylePicker extends React.Component {
                             </div>
 
                             <div className="FontStylePickerColor">
-                                <input ref={this.nativeColorInputRef} style={{visibility: 'hidden'}} type="color" defaultValue={color} onChange={this.handleColorChange} />
-                                <IconButton onClick={() => {this.nativeColorInputRef.current.click()}}>
-                                    <ColorIcon/>
-                                </IconButton>
+                                <ColorPicker defaultValue={color} onChange={this.handleColorChange}/>
                             </div>
 
                             <div className="FontStylePickerItalic">
@@ -110,8 +108,7 @@ class FontStylePicker extends React.Component {
         this.setState( {open: false });
     }
 
-    handleColorChange(e) {
-        let newValue = e.target.value;
+    handleColorChange(newValue) {
 
         let newFontStyle = {...this.props.fontStyle};
         newFontStyle.color = newValue;

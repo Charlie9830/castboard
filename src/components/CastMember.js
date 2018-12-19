@@ -1,4 +1,5 @@
 import React from 'react';
+import GetStyleFromFontStyle from '../utilties/GetStyleFromFontStyle';
 
 let CastMember = (props) => {
     let containerStyle = {
@@ -19,21 +20,18 @@ let CastMember = (props) => {
         objectFit: 'cover',
         width: getHeadshotDimensions(props.billing).width,
         height: getHeadshotDimensions(props.billing).height,
-        border: '3px solid rgb(211,169,42)'
+        borderColor: props.theme.headshotBorderColor,
+        borderWidth: `${props.theme.headshotBorderStrokeWidth}px`,
+        borderStyle: 'solid',
     }
 
     let nameStyle = {
-        fontFamily: 'News Gothic Condensed',
-        fontSize: getNameFontSize(props.billing),
-        fontWeight: '700',
-        color: 'rgb(211,169,42)',
+        ...getNameFontStyle(props.billing, props.theme),
         marginTop: getNameMarginTop(props.billing),
     }
 
     let roleStyle = {
-        fontFamily: 'News Gothic Condensed',
-        fontSize: getRoleFontSize(props.billing),
-        color: 'rgb(211,169,42)',
+        ...getRoleFontStyle(props.billing, props.theme),
     }
 
     return (
@@ -71,39 +69,18 @@ let getHeadshotDimensions = (billing) => {
     }
 }
 
-let getNameFontSize = (billing) => {
-    switch(billing) {
-        case "principle":
-            return '36pt';
+let getNameFontStyle = (billing, theme) => {
+    let propertyName = `${billing}ActorFontStyle`;
 
-        case "lead":
-            return '28pt';
-
-
-        case "ensemble":
-            return '16pt';
-
-        default:
-        return '12pt';
-    }
+    return GetStyleFromFontStyle(theme[propertyName]);
 }
 
-let getRoleFontSize = (billing) => {
-    switch(billing) {
-        case "principle":
-            return '28pt';
+let getRoleFontStyle = (billing, theme) => {
+    let propertyName = `${billing}RoleFontStyle`;
 
-        case "lead":
-            return '24pt';
-
-
-        case "ensemble":
-            return '15pt';
-
-        default:
-        return '12pt';
-    }
+    return GetStyleFromFontStyle(theme[propertyName]);
 }
+
 
 let getNameMarginTop = (billing) => {
     switch(billing) {

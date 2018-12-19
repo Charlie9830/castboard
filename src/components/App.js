@@ -93,7 +93,15 @@ class App extends Component {
           onSlideTitleFontStyleChange={this.props.onSlideTitleFontStyleChange}
           onZoomInButtonClick={this.handleZoomInButtonClick}
           onZoomOutButtonClick={this.handleZoomOutButtonClick}
-          onCastRowRoleDeleteButtonClick={this.props.onCastRowRoleDeleteButtonClick}/>
+          onCastRowRoleDeleteButtonClick={this.props.onCastRowRoleDeleteButtonClick}
+          onCastRowDeleteButtonClick={this.props.onCastRowDeleteButtonClick}
+          onCastRowRoleShiftUpButtonClick={this.props.onCastRowRoleShiftUpButtonClick}
+          onCastRowRoleShiftDownButtonClick={this.props.onCastRowRoleShiftDownButtonClick}
+          onPrincipleFontStyleChange={this.props.onPrincipleFontStyleChange}
+          onLeadFontStyleChange={this.props.onLeadFontStyleChange}
+          onEnsembleFontStyleChange={this.props.onEnsembleFontStyleChange}
+          onHeadshotBorderStrokeWidthChange={this.props.onHeadshotBorderStrokeWidthChange}
+          onHeadshotBorderColorChange={this.props.onHeadshotBorderColorChange}/>
         </div>
 
         <div className="SlidePreviewContainer" style={{transform: `scale(${this.state.zoomLevel})`}}>

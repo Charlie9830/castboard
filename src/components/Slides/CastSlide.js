@@ -44,7 +44,7 @@ let CastSlide = (props) => {
                 </div>
 
                 <div style={childrenContainerStyle}>
-                    {getSlideContentsJSX(props.slide, props.castMembers, props.castChangeMap)}
+                    {getSlideContentsJSX(props.slide, props.castMembers, props.castChangeMap, props.theme)}
                 </div>
 
             </div>
@@ -52,7 +52,7 @@ let CastSlide = (props) => {
     )
 }
 
-let getSlideContentsJSX = (slide, castMembers, castChangeMap) => {
+let getSlideContentsJSX = (slide, castMembers, castChangeMap, theme) => {
     let jsx = slide.castRows.map( row => {
         let rolesJSX = row.roles.map( role => {
             let castId = castChangeMap[role.uid];
@@ -73,7 +73,7 @@ let getSlideContentsJSX = (slide, castMembers, castChangeMap) => {
 
             return (
                 <CastMember key={castId} name={castMember.name} character={role.name} billing={castMember.billing}
-                headshot={castMember.headshot}/>
+                theme={theme} headshot={castMember.headshot}/>
             )
         })
 

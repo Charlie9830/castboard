@@ -1,9 +1,9 @@
 import React from 'react';
 import FontStylePicker from './FontStylePicker';
+import HeadshotFontStylePicker from './HeadshotFontStylePicker';
 import { Drawer, AppBar, Toolbar, Typography, Grid, Tabs, Tab, List, Button, ListItem,
      ListItemText, FormControlLabel, TextField, Select, ListItemSecondaryAction, IconButton,
       Paper, ListItemIcon, Avatar, MenuItem, Checkbox } from '@material-ui/core';
-
 
 import DeleteIcon from '@material-ui/icons/Delete';
 import PersonIcon from '@material-ui/icons/Person';
@@ -19,6 +19,7 @@ import ArrowUpIcon from '@material-ui/icons/ArrowUpward';
 import ArrowDownIcon from '@material-ui/icons/ArrowDownward';
 
 import GetCastMemberIdFromMap from '../utilties/GetCastMemberIdFromMap';
+import ColorPicker from './ColorPicker';
 
 let SlideTypeSelect = (props) => {
     return (
@@ -81,7 +82,7 @@ class AppDrawer extends React.Component {
 
         // State.
         this.state = {
-            primaryTab: 0,
+            primaryTab: 2,
             secondaryTab: 0
         }
 
@@ -201,7 +202,7 @@ class AppDrawer extends React.Component {
                                         <ListItemText primary="Global Background Image" secondary="Used on all Slides except Title Slides" />
                                         <ListItemSecondaryAction>
                                             <IconButton onClick={this.props.onChooseBackgroundImageButtonClick}>
-                                                <OpenIcon/>
+                                                <InsertPhotoIcon/>
                                             </IconButton>
                                         </ListItemSecondaryAction>
                                     </ListItem>
@@ -209,32 +210,47 @@ class AppDrawer extends React.Component {
                                     <ListItem>
                                         <ListItemText primary="Principle Name Style"/>
                                         <ListItemSecondaryAction>
-                                            <FontStylePicker/>
+                                            <HeadshotFontStylePicker 
+                                            actorFontStyle={this.props.theme.principleActorFontStyle}
+                                            roleFontStyle={this.props.theme.principleRoleFontStyle}
+                                            onChange={this.props.onPrincipleFontStyleChange}/>
                                         </ListItemSecondaryAction>
                                     </ListItem>
 
                                     <ListItem>
                                         <ListItemText primary="Lead Name Style"/>
                                         <ListItemSecondaryAction>
-                                            <FontStylePicker/>
+                                            <HeadshotFontStylePicker
+                                             actorFontStyle={this.props.theme.leadActorFontStyle}
+                                             roleFontStyle={this.props.theme.leadRoleFontStyle}
+                                             onChange={this.props.onLeadFontStyleChange}/>
                                         </ListItemSecondaryAction>
                                     </ListItem>
 
                                     <ListItem>
                                         <ListItemText primary="Ensemble Name Style"/>
                                         <ListItemSecondaryAction>
-                                            <FontStylePicker/>
+                                            <HeadshotFontStylePicker 
+                                            actorFontStyle={this.props.theme.ensembleActorFontStyle}
+                                            roleFontStyle={this.props.theme.ensembleRoleFontStyle}
+                                            onChange={this.props.onEnsembleFontStyleChange}/>
                                         </ListItemSecondaryAction>
                                     </ListItem>
 
                                     <ListItem>
                                         <ListItemText primary="Headshot Border Stroke Width"/>
+                                        <ListItemSecondaryAction>
+                                            <TextField style={{width: '48px'}} type="number" defaultValue={this.props.theme.headshotBorderStrokeWidth}
+                                            onChange={(e) => {this.props.onHeadshotBorderStrokeWidthChange(e.target.value)}}/>
+                                        </ListItemSecondaryAction>
                                     </ListItem>
 
                                     <ListItem>
                                         <ListItemText primary="Headshot Border Stroke Colour"/>
+                                        <ListItemSecondaryAction>
+                                            <ColorPicker defaultValue={this.props.theme.headshotBorderColor} onChange={this.props.onHeadshotBorderColorChange}/>
+                                        </ListItemSecondaryAction>
                                     </ListItem>
-
                                 </List>
                                 
                             </Grid>
@@ -276,10 +292,10 @@ class AppDrawer extends React.Component {
                             </ListItemIcon>
                             <ListItemText inset primary={role.name}/>
                             <ListItemSecondaryAction>
-                                <IconButton>
+                                <IconButton onClick={() => {this.props.onCastRowRoleShiftUpButtonClick(selectedSlide.uid, item.uid, role.uid)}}>
                                     <ArrowUpIcon/>
                                 </IconButton>
-                                <IconButton>
+                                <IconButton onClick={() => {this.props.onCastRowRoleShiftDownButtonClick(selectedSlide.uid, item.uid, role.uid)}}>
                                     <ArrowDownIcon/>
                                 </IconButton>
                                 <IconButton 
@@ -294,9 +310,12 @@ class AppDrawer extends React.Component {
                 return (
                     <React.Fragment key={index}>
                         <ListItem key={item.uid} divider={true}>
-                            <ListItemText primary={`Row ${item.rowNumber}`}/>
+                            <ListItemText primary={`Row ${item.rowNumber + 1}`}/>
                             <ListItemSecondaryAction>
                                 <Button variant="outlined" onClick={() => { this.props.onAddRoleToCastRowButtonClick(selectedSlide.uid, item.uid) }}> Add Role </Button>
+                                <IconButton onClick={() => {this.props.onCastRowDeleteButtonClick(selectedSlide.uid, item.uid)}}>
+                                    <DeleteIcon/>
+                                </IconButton>
                             </ListItemSecondaryAction>
                         </ListItem>
                         {rolesJSX}
@@ -314,22 +333,24 @@ class AppDrawer extends React.Component {
             let informationText = selectedSlide.informationText;
 
             return (
-                <Grid container
-                    direction="column"
-                    justify="flex-start"
-                    alignItems="flex-start">
-                    <TextField style={{width: '100%'}} multiline defaultValue={informationText} label="Text"
-                        onChange={(e) => { this.props.onInformationTextChange(selectedSlide.uid, e.target.value) }} />
-
-                    <Grid container
-                    direction="row"
-                    justify="flex-start"
-                    alignItems="center">
-                    <FontStylePicker fontStyle={selectedSlide.informationTextFontStyle}
-                    onChange={(fontStyle) => { this.props.onInformationTextFontStyleChange(selectedSlide.uid, fontStyle) }} />
-                    </Grid>
+                <List>
+                    <ListItem>
+                        <ListItemText primary="Text" />
+                    </ListItem>
+                    <ListItemSecondaryAction>
+                        <Grid container
+                            direction="row"
+                            justify="flex-end"
+                            alignItems="center">
+                            <TextField style={{ width: '75%' }} multiline defaultValue={informationText}
+                                onChange={(e) => { this.props.onInformationTextChange(selectedSlide.uid, e.target.value) }} />
+                            <FontStylePicker fontStyle={selectedSlide.informationTextFontStyle}
+                                onChange={(fontStyle) => { this.props.onInformationTextFontStyleChange(selectedSlide.uid, fontStyle) }} />
+                        </Grid>
+                    </ListItemSecondaryAction>
                     
-                </Grid>
+                </List>
+                    
             )
         }
     }
@@ -362,8 +383,8 @@ class AppDrawer extends React.Component {
                     </ListItem>
 
                     
-                    <Paper style={{padding: '8px', background: 'rgb(225,225,225', marginTop: '8px'}}>
-                        <Typography variant="body1"> Headshot Rows </Typography>
+                    <Paper style={{padding: '8px', marginTop: '24px'}}>
+                        <Typography variant="subheading"> Headshot Rows </Typography>
                         <Button variant="contained" style={{marginTop: '8px'}}
                             onClick={() => { this.props.onAddRowToSlideButtonClick(this.props.selectedSlideId) }}> Add Row </Button>
                         <List style={{ width: '90%' }}>

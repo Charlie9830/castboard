@@ -1,5 +1,6 @@
 import GetUID from '../utilties/GetUID';
 import FontStyleFactory from './FontStyleFactory';
+import CastRowFactory from './CastRowFactory';
 
 let defaultFont = FontStyleFactory('Sans Serif', 12, false, false);
 
@@ -11,7 +12,7 @@ let SlideFactory = (number) => {
         number: number,
         informationText: "",
         informationTextFontStyle: defaultFont,
-        castRows: [],
+        castRows: [ CastRowFactory(0) ], // Assert 1 Cast Row.
         title: "",
         titleFontStyle: defaultFont,
     }
