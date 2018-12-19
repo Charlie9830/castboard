@@ -101,7 +101,11 @@ class App extends Component {
           onLeadFontStyleChange={this.props.onLeadFontStyleChange}
           onEnsembleFontStyleChange={this.props.onEnsembleFontStyleChange}
           onHeadshotBorderStrokeWidthChange={this.props.onHeadshotBorderStrokeWidthChange}
-          onHeadshotBorderColorChange={this.props.onHeadshotBorderColorChange}/>
+          onHeadshotBorderColorChange={this.props.onHeadshotBorderColorChange}
+          onAddCastGroupButtonClick={this.props.onAddCastGroupButtonClick}
+          castGroups={this.props.castGroups}
+          onAddCastMemberToGroupButtonClick={this.props.onAddCastMemberToGroupButtonClick}
+          onCastGroupNameChange={this.props.onCastGroupNameChange}/>
         </div>
 
         <div className="SlidePreviewContainer" style={{transform: `scale(${this.state.zoomLevel})`}}>

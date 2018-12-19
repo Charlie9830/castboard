@@ -1,12 +1,15 @@
 import React from 'react';
 import FontStylePicker from './FontStylePicker';
 import HeadshotFontStylePicker from './HeadshotFontStylePicker';
+import CastGroup from './CastGroup';
 import { Drawer, AppBar, Toolbar, Typography, Grid, Tabs, Tab, List, Button, ListItem,
      ListItemText, FormControlLabel, TextField, Select, ListItemSecondaryAction, IconButton,
-      Paper, ListItemIcon, Avatar, MenuItem, Checkbox } from '@material-ui/core';
+      Paper, ListItemIcon, Avatar, MenuItem, Checkbox, ListSubheader } from '@material-ui/core';
 
 import DeleteIcon from '@material-ui/icons/Delete';
 import PersonIcon from '@material-ui/icons/Person';
+import AddPersonIcon from '@material-ui/icons/PersonAdd';
+import AddGroupIcon from '@material-ui/icons/GroupAdd';
 import ScriptIcon from '@material-ui/icons/Book';
 import ArrowForwardIcon from '@material-ui/icons/ArrowForward';
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
@@ -18,8 +21,33 @@ import OpenIcon from '@material-ui/icons/FolderOpen';
 import ArrowUpIcon from '@material-ui/icons/ArrowUpward';
 import ArrowDownIcon from '@material-ui/icons/ArrowDownward';
 
+
 import GetCastMemberIdFromMap from '../utilties/GetCastMemberIdFromMap';
 import ColorPicker from './ColorPicker';
+
+let CastMemberListItem = (props) => {
+    return (
+        <ListItem style={{paddingLeft: props.inset === true ? "64px" : 'inherit'}}>
+            <HeadshotListItemIcon uid={props.uid} headshot={props.headshot} billing={props.billing} />
+            <Grid container
+                direction="row"
+                justify="flex-start">
+                <TextField style={{marginLeft: '16px'}}
+                 placeholder="Enter cast name..." defaultValue={props.name} onBlur={(e) => { props.onCastMemberNameChange(e.target.value) }} />
+                <BillingSelect value={props.billing} onChange={(e) => { props.onCastMemberBillingChange(e.target.value) }} />
+            </Grid>
+
+            <ListItemSecondaryAction>
+                <IconButton onClick={props.onAddHeadshotButtonClick}>
+                    <InsertPhotoIcon />
+                </IconButton>
+                <IconButton onClick={props.onCastMemberDeleteButtonClick}>
+                    <DeleteIcon />
+                </IconButton>
+            </ListItemSecondaryAction>
+        </ListItem>
+    )
+}
 
 let SlideTypeSelect = (props) => {
     return (
@@ -82,7 +110,7 @@ class AppDrawer extends React.Component {
 
         // State.
         this.state = {
-            primaryTab: 2,
+            primaryTab: 0,
             secondaryTab: 0
         }
 
@@ -110,7 +138,7 @@ class AppDrawer extends React.Component {
             direction="column"
             justify="flex-start"
             alignItems="flex-start">
-                <AppBar position="sticky" color="secondary">
+                <AppBar position="relative" color="secondary">
                     <Toolbar>
                         <Typography variant="h6" color="textPrimary"> Properties  </Typography>
                         <Grid container
@@ -348,7 +376,6 @@ class AppDrawer extends React.Component {
                                 onChange={(fontStyle) => { this.props.onInformationTextFontStyleChange(selectedSlide.uid, fontStyle) }} />
                         </Grid>
                     </ListItemSecondaryAction>
-                    
                 </List>
                     
             )
@@ -489,9 +516,19 @@ class AppDrawer extends React.Component {
     getCastTabJSX() {
         return (
             <React.Fragment>
-                <Button variant="contained" onClick={this.props.onAddCastMemberButtonClick}> Add Cast Member </Button>
+                <Grid container
+                    direction="row">
+                    <IconButton  onClick={this.props.onAddCastMemberButtonClick}>
+                        <AddPersonIcon/>
+                    </IconButton>
+                    
+                    <IconButton onClick={this.props.onAddCastGroupButtonClick}> 
+                        <AddGroupIcon/>
+                    </IconButton>
+                </Grid>
+               
                 <List style={{ width: '100%' }}>
-                    {this.getCastMembersJSX()}
+                    { this.getCastMembersJSX() }
                 </List>
             </React.Fragment>
         )
@@ -531,32 +568,53 @@ class AppDrawer extends React.Component {
     }
 
     getCastMembersJSX() {
-        let jsx = this.props.castMembers.map( item => {
+        let ungroupedCast = this.props.castMembers.filter(item => {
+            return item.groupId === "-1";
+        })
+
+        let ungroupedCastJSX = ungroupedCast.map( item => {
             return (
-                <ListItem key={item.uid}>
-                    <HeadshotListItemIcon headshot={item.headshot}/>
-                    <Grid container
-                    direction="row"
-                    justify="flex-start">
-                        <TextField label="Name" defaultValue={item.name} onBlur={(e) => {this.props.onCastMemberNameChange(item.uid, e.target.value)}}/>
-                        <BillingSelect value={item.billing} onChange={(e) => {this.props.onCastMemberBillingChange(item.uid, e.target.value)}}/>
-                    </Grid>
-                    
-
-                    <ListItemSecondaryAction>
-                        <IconButton onClick={() => { this.props.onAddHeadshotButtonClick(item.uid) }}>
-                            <InsertPhotoIcon />
-                        </IconButton>
-                        <IconButton onClick={() => { this.props.onCastMemberDeleteButtonClick(item.uid) }}>
-                            <DeleteIcon />
-                        </IconButton>
-                    </ListItemSecondaryAction>
-
-                </ListItem>
+                <CastMemberListItem key={item.uid} headshot={item.headshot} name={item.name} uid={item.uid}
+                    billing={item.billing}
+                    onCastMemberNameChange={(newValue) => { this.props.onCastMemberNameChange(item.uid, newValue) }}
+                    onCastMemberBillingChange={(newValue) => { this.props.onCastMemberBillingChange(item.uid, newValue) }}
+                    onAddHeadshotButtonClick={() => { this.props.onAddHeadshotButtonClick(item.uid) }}
+                    onCastMemberDeleteButtonClick={() => { this.props.onCastMemberDeleteButtonClick(item.uid) }}
+                />
             )
         })
 
-        return jsx;
+        let groupedCast = this.props.castMembers.filter(item => {
+            return item.groupId !== "-1";
+        })
+
+        let groupJSX = this.props.castGroups.map( item => {
+            let castMembersJSX = groupedCast.map( castMember => {
+                if (castMember.groupId !== item.uid) {
+                    return null;
+                }
+
+                return (
+                    <CastMemberListItem inset={true} key={castMember.uid} inset headshot={castMember.headshot} name={castMember.name} uid={castMember.uid}
+                    billing={castMember.billing}
+                    onCastMemberNameChange={(newValue) => { this.props.onCastMemberNameChange(castMember.uid, newValue) }}
+                    onCastMemberBillingChange={(newValue) => { this.props.onCastMemberBillingChange(castMember.uid, newValue) }}
+                    onAddHeadshotButtonClick={() => { this.props.onAddHeadshotButtonClick(castMember.uid) }}
+                    onCastMemberDeleteButtonClick={() => { this.props.onCastMemberDeleteButtonClick(castMember.uid) }}
+                    />
+                )
+            })
+
+            return (
+                <CastGroup key={item.uid}
+                onAddCastMemberButtonClick={(e) => {this.props.onAddCastMemberToGroupButtonClick(item.uid)}}
+                name={item.name} onNameChange={(newValue) => {this.props.onCastGroupNameChange(item.uid, newValue)}} >
+                    {castMembersJSX}
+                </CastGroup>
+            )
+        })
+
+        return [...ungroupedCastJSX, ...groupJSX];
     }
 }
 

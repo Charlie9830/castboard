@@ -15,10 +15,12 @@ import RoleFactory from '../factories/RoleFactory';
 import SlideFactory from '../factories/SlideFactory';
 import ThemeFactory from '../factories/ThemeFactory';
 import CastRowFactory from '../factories/CastRowFactory';
+import CastGroupFactory from '../factories/CastGroupFactory';
 
 const mainDB = new Dexie('castboardMainDB');
 mainDB.version(1).stores({
     castMembers: 'uid, name',
+    castGroups: 'uid',
     roles: 'uid, name',
     castChangeMap: 'uid',
     slides: 'uid',
@@ -53,6 +55,7 @@ class AppContainer extends React.Component {
         this.state = {
             currentSlide: 0,
             castMembers: [],
+            castGroups: [],
             roles: [],
             castChangeMap: { uid: castChangeId }, // Maps RoleId's to CastMemberId's
             slides: [],
@@ -100,6 +103,9 @@ class AppContainer extends React.Component {
         this.handleEnsembleFontStyleChange = this.handleEnsembleFontStyleChange.bind(this);
         this.handleHeadshotBorderStrokeWidthChange = this.handleHeadshotBorderStrokeWidthChange.bind(this);
         this.handleHeadshotBorderColorChange = this.handleHeadshotBorderColorChange.bind(this);
+        this.handleAddCastGroupButtonClick = this.handleAddCastGroupButtonClick.bind(this);
+        this.handleAddCastMemberToGroupButtonClick = this.handleAddCastMemberToGroupButtonClick.bind(this);
+        this.handleCastGroupNameChange = this.handleCastGroupNameChange.bind(this);
     }
 
     componentDidMount() {
@@ -152,6 +158,18 @@ class AppContainer extends React.Component {
                 this.setState({ theme: result });
             }
         })
+
+        // Pull Down Cast Groups
+        mainDB.castGroups.toArray().then( result => {
+            if (result.length > 0) {
+                let castGroups = [];
+                result.forEach( item => {
+                    castGroups.push( item );
+                })
+
+                this.setState({castGroups: castGroups});
+            }
+        })
     }
 
     render() {
@@ -198,10 +216,54 @@ class AppContainer extends React.Component {
                     onLeadFontStyleChange={this.handleLeadFontStyleChange}
                     onEnsembleFontStyleChange={this.handleEnsembleFontStyleChange}
                     onHeadshotBorderStrokeWidthChange={this.handleHeadshotBorderStrokeWidthChange}
-                    onHeadshotBorderColorChange={this.handleHeadshotBorderColorChange} />
+                    onHeadshotBorderColorChange={this.handleHeadshotBorderColorChange}
+                    onAddCastGroupButtonClick={this.handleAddCastGroupButtonClick} 
+                    castGroups={this.state.castGroups}
+                    onAddCastMemberToGroupButtonClick={this.handleAddCastMemberToGroupButtonClick}
+                    onCastGroupNameChange={this.handleCastGroupNameChange}/>
             </MuiThemeProvider>
-            
         )
+    }
+
+    handleCastGroupNameChange(groupId, newValue) {
+        let castGroups = [...this.state.castGroups];
+        let castGroup = castGroups.find(item => {
+            return item.uid === groupId;
+        })
+
+        castGroup.name = newValue;
+
+        this.setState({castGroups: castGroups});
+
+        // Add to Database.
+        mainDB.castGroups.update(groupId, {name: newValue}).then( () => {
+
+        }); 
+    }
+
+    handleAddCastMemberToGroupButtonClick(groupId) {
+        let castMembers = [...this.state.castMembers];
+        let newCastMember = CastMemberFactory("", "ensemble", groupId);
+        castMembers.push(newCastMember);
+
+        this.setState({castMembers: castMembers });
+
+        // Add to DB
+        mainDB.castMembers.add(newCastMember);
+    }
+
+    handleAddCastGroupButtonClick() {
+        let castGroups = [...this.state.castGroups];
+        let newCastGroup = CastGroupFactory();
+
+        castGroups.push(newCastGroup);
+
+        this.setState({castGroups: castGroups});
+
+        // Add to Database.
+        mainDB.castGroups.add(newCastGroup).then( () => {
+
+        }); 
     }
 
     handleHeadshotBorderColorChange(newValue) {
@@ -808,7 +870,7 @@ class AppContainer extends React.Component {
 
     handleAddCastMemberButtonClick() {
         let castMembers = [...this.state.castMembers];
-        let newCastMember = CastMemberFactory("", "ensemble", "");
+        let newCastMember = CastMemberFactory("", "ensemble", "-1");
         castMembers.push(newCastMember);
 
         this.setState({castMembers: castMembers });
