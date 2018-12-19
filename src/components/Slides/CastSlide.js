@@ -72,7 +72,7 @@ let getSlideContentsJSX = (slide, castMembers, castChangeMap, theme) => {
             }
 
             return (
-                <CastMember key={castId} name={castMember.name} character={role.name} billing={castMember.billing}
+                <CastMember key={castId} name={castMember.name} character={role.displayedName} billing={castMember.billing}
                 theme={theme} headshot={castMember.headshot}/>
             )
         })

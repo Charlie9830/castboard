@@ -1,10 +1,10 @@
 import React from 'react';
 import PeopleIcon from '@material-ui/icons/People';
-import MoreVertIcon from '@material-ui/icons/MoreVert';
 import AddPersonIcon from '@material-ui/icons/PersonAdd';
+import MoreVertIcon from '@material-ui/icons/MoreVert';
 import { List, ListItem, ListItemIcon, TextField, ListItemSecondaryAction, IconButton } from '@material-ui/core';
 
-let CastGroup = (props) => {
+let RoleGroup = (props) => {
     return (
         <React.Fragment>
             <ListItem>
@@ -16,11 +16,11 @@ let CastGroup = (props) => {
                 onBlur={(e) => {props.onNameChange(e.target.value)}}/>
 
                 <ListItemSecondaryAction>
-                    <IconButton onClick={props.onAddCastMemberButtonClick}>
-                      <AddPersonIcon/>
+                    <IconButton onClick={props.onAddRoleButtonClick}>
+                        <AddPersonIcon />
                     </IconButton>
                     <IconButton>
-                        <MoreVertIcon/>
+                        <MoreVertIcon />
                     </IconButton>
                 </ListItemSecondaryAction>
             </ListItem>
@@ -31,4 +31,4 @@ let CastGroup = (props) => {
     )
 }
 
-export default CastGroup;
+export default RoleGroup;

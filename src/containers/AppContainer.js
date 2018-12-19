@@ -16,12 +16,14 @@ import SlideFactory from '../factories/SlideFactory';
 import ThemeFactory from '../factories/ThemeFactory';
 import CastRowFactory from '../factories/CastRowFactory';
 import CastGroupFactory from '../factories/CastGroupFactory';
+import RoleGroupFactory from '../factories/RoleGroupFactory';
 
 const mainDB = new Dexie('castboardMainDB');
 mainDB.version(1).stores({
     castMembers: 'uid, name',
     castGroups: 'uid',
     roles: 'uid, name',
+    roleGroups: 'uid',
     castChangeMap: 'uid',
     slides: 'uid',
     theme: 'uid',
@@ -57,6 +59,7 @@ class AppContainer extends React.Component {
             castMembers: [],
             castGroups: [],
             roles: [],
+            roleGroups: [],
             castChangeMap: { uid: castChangeId }, // Maps RoleId's to CastMemberId's
             slides: [],
             selectedSlideId: -1,
@@ -106,6 +109,10 @@ class AppContainer extends React.Component {
         this.handleAddCastGroupButtonClick = this.handleAddCastGroupButtonClick.bind(this);
         this.handleAddCastMemberToGroupButtonClick = this.handleAddCastMemberToGroupButtonClick.bind(this);
         this.handleCastGroupNameChange = this.handleCastGroupNameChange.bind(this);
+        this.handleAddRoleGroupButtonClick = this.handleAddRoleGroupButtonClick.bind(this);
+        this.handleAddRoleToGroupButtonClick = this.handleAddRoleToGroupButtonClick.bind(this);
+        this.handleRoleGroupNameChange = this.handleRoleGroupNameChange.bind(this);
+        this.handleRoleDisplayedNameChange = this.handleRoleDisplayedNameChange.bind(this);
     }
 
     componentDidMount() {
@@ -170,6 +177,18 @@ class AppContainer extends React.Component {
                 this.setState({castGroups: castGroups});
             }
         })
+
+        // Pull down Role Groups.
+        mainDB.roleGroups.toArray().then( result => {
+            if (result.length > 0) {
+                let roleGroups = [];
+                result.forEach( item => {
+                    roleGroups.push( item );
+                })
+
+                this.setState({roleGroups: roleGroups});
+            }
+        })
     }
 
     render() {
@@ -220,9 +239,73 @@ class AppContainer extends React.Component {
                     onAddCastGroupButtonClick={this.handleAddCastGroupButtonClick} 
                     castGroups={this.state.castGroups}
                     onAddCastMemberToGroupButtonClick={this.handleAddCastMemberToGroupButtonClick}
-                    onCastGroupNameChange={this.handleCastGroupNameChange}/>
+                    onCastGroupNameChange={this.handleCastGroupNameChange}
+                    onAddRoleGroupButtonClick={this.handleAddRoleGroupButtonClick}
+                    roleGroups={this.state.roleGroups}
+                    onAddRoleToGroupButtonClick={this.handleAddRoleToGroupButtonClick}
+                    onRoleGroupNameChange={this.handleRoleGroupNameChange}
+                    onRoleDisplayedNameChange={this.handleRoleDisplayedNameChange}/>
             </MuiThemeProvider>
         )
+    }
+
+    handleRoleDisplayedNameChange(roleId, newValue) {
+        let roles = [...this.state.roles];
+        let role = roles.find(item => {
+            return item.uid === roleId;
+        })
+
+        role.displayedName = newValue;
+
+        this.setState({ roles: roles });
+
+        // Update DB
+        mainDB.roles.update(roleId, { displayedName: newValue }).then( result => {
+
+        })
+    }
+
+    handleRoleGroupNameChange(groupId, newValue) {
+        let roleGroups = [...this.state.roleGroups];
+        let roleGroup = roleGroups.find(item => {
+            return item.uid === groupId;
+        })
+
+        roleGroup.name = newValue;
+
+        this.setState({ roleGroups: roleGroups });
+
+        // Add to Database.
+        mainDB.roleGroups.update(groupId, { name: newValue }).then(() => {
+
+        });
+    }
+
+    handleAddRoleToGroupButtonClick(groupId) {
+        let roles = [...this.state.roles];
+        let newRole = RoleFactory("", groupId )
+
+        roles.push(newRole);
+
+        this.setState({roles: roles });
+
+        // Add to DB
+        mainDB.roles.add(newRole).then( () => {
+
+        })
+    }
+
+    handleAddRoleGroupButtonClick() {
+        let roleGroups = [...this.state.roleGroups];
+        let newRoleGroup = RoleGroupFactory();
+
+        roleGroups.push(newRoleGroup);
+
+        this.setState({roleGroups: roleGroups});
+
+        mainDB.roleGroups.add(newRoleGroup).then( () => {
+
+        })
     }
 
     handleCastGroupNameChange(groupId, newValue) {
@@ -445,20 +528,21 @@ class AppContainer extends React.Component {
             return item.uid === castRowId;
         })
 
-        let roleIndex = castRow.roles.find(item => {
+        let roleIndex = castRow.roles.findIndex(item => {
             return item.uid === roleId;
         })
 
         if (roleIndex !== -1) {
             castRow.roles.splice(roleIndex, 1);
-
             this.setState({ slides: slides });
+
+            // Update Database.
+            mainDB.slides.update(slideId, { castRows: slide.castRows }).then(() => {
+
+            });
         }
 
-        // Update Database.
-        mainDB.slides.update(slideId, { castRows: slide.castRows }).then( () => {
 
-        });
     }
 
     handleSlideTitleChange(uid, newValue) {
@@ -772,18 +856,33 @@ class AppContainer extends React.Component {
 
     handleRoleNameChange(uid, newValue) {
         let roles = [...this.state.roles];
-        let role = roles.find(item => {
+        let role = roles.find((item => {
             return item.uid === uid;
-        })
+        }));
 
+        role.displayedName = this.guessDisplayedRoleName(newValue);
         role.name = newValue;
 
         this.setState({ roles: roles });
 
         // Update DB
-        mainDB.roles.update(uid, { name: newValue }).then( result => {
+        mainDB.roles.update(uid, { name: newValue, displayedName: this.guessDisplayedRoleName(newValue) }).then( result => {
 
         })
+    }
+
+    guessDisplayedRoleName(internalName) {
+        if (typeof internalName !== "string") {
+            return "";
+        }
+
+        if (internalName.toLowerCase().includes("ensemble") === false) {
+            return internalName;
+        }
+
+        else {
+            return "Ensemble";
+        }
     }
 
     handleDeleteRoleButtonClick(uid) {
@@ -806,7 +905,7 @@ class AppContainer extends React.Component {
 
     handleAddRoleButtonClick() {
         let roles = [...this.state.roles];
-        let newRole = RoleFactory("");
+        let newRole = RoleFactory("", "-1");
 
         roles.push(newRole);
 

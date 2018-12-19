@@ -2,6 +2,8 @@ import React from 'react';
 import FontStylePicker from './FontStylePicker';
 import HeadshotFontStylePicker from './HeadshotFontStylePicker';
 import CastGroup from './CastGroup';
+import CastMemberSelect from './CastMemberSelect';
+
 import { Drawer, AppBar, Toolbar, Typography, Grid, Tabs, Tab, List, Button, ListItem,
      ListItemText, FormControlLabel, TextField, Select, ListItemSecondaryAction, IconButton,
       Paper, ListItemIcon, Avatar, MenuItem, Checkbox, ListSubheader } from '@material-ui/core';
@@ -24,6 +26,32 @@ import ArrowDownIcon from '@material-ui/icons/ArrowDownward';
 
 import GetCastMemberIdFromMap from '../utilties/GetCastMemberIdFromMap';
 import ColorPicker from './ColorPicker';
+import RoleGroupFactory from '../factories/RoleGroupFactory';
+import RoleGroup from './RoleGroup';
+
+let RoleListItem = (props) => {
+    return (
+
+        <ListItem style={{paddingLeft: props.inset === true ? "64px" : 'inherit'}} >
+            <ListItemIcon>
+                <ScriptIcon />
+            </ListItemIcon>
+
+            <TextField placeholder="Internal Role Name" defaultValue={props.name} onBlur={(e) => {props.onRoleNameChange(e.target.value) }} />
+
+            {/* Uses value and onChange so that the value can be updated after Render. Using defaultValue only allows you to
+            to update on the initial render.  */} 
+            <TextField style={{marginLeft: '8px'}} value={props.displayedName}
+             onChange={(e) => {props.onDisplayedNameChange(e.target.value)}} placeholder="Displayed Role Name"/>
+
+            <ListItemSecondaryAction>
+                <IconButton onClick={props.onDeleteButtonClick}>
+                    <DeleteIcon />
+                </IconButton>
+            </ListItemSecondaryAction>
+        </ListItem>
+    )
+}
 
 let CastMemberListItem = (props) => {
     return (
@@ -86,22 +114,6 @@ let HeadshotListItemIcon = (props) => {
             <Avatar src={'data:image/jpg;base64,' + props.headshot }/>
         )
     }
-}
-
-let CastMemberSelect = (props) => {
-    let options = props.castMembers.map( item => {
-        return (
-            <MenuItem key={item.uid} value={item.uid}> {item.name} </MenuItem>
-        )
-    });
-
-    options.unshift(<MenuItem key={-1} value={-1}> Track Cut </MenuItem>);
-
-    return (
-        <Select onChange={props.onChange} value={props.value}>
-            {options}
-        </Select>
-    )
 }
 
 class AppDrawer extends React.Component {
@@ -538,7 +550,9 @@ class AppDrawer extends React.Component {
         return (
             <React.Fragment>
                 <Button variant="contained" onClick={this.props.onAddRoleButtonClick} > Add Role </Button>
-                <List style={{ width: '75%'}}>
+                <Button variant="contained" onClick={this.props.onAddRoleGroupButtonClick}> Add Role Group </Button>
+
+                <List style={{ width: '100%'}}>
                     {this.getRolesJSX()}
                 </List>
             </React.Fragment>
@@ -546,25 +560,59 @@ class AppDrawer extends React.Component {
     }
 
     getRolesJSX() {
-        let jsx = this.props.roles.map( item => {
+        let individualRoles = [];
+        let groupedRoles = [];
+
+        this.props.roles.forEach( item => {
+            if (item.groupId === "-1") {
+                individualRoles.push(item);
+            }
+
+            else {
+                groupedRoles.push(item);
+            }
+        })
+
+        let individualRolesJSX = individualRoles.map( item => {
             return (
-                <ListItem key={item.uid}>
-                    <ListItemIcon>
-                        <ScriptIcon/>
-                    </ListItemIcon>
-
-                    <TextField label="Character" defaultValue={item.name} onBlur={(e) => {this.props.onRoleNameChange(item.uid, e.target.value)}}/>
-
-                    <ListItemSecondaryAction>
-                        <IconButton onClick={() => {this.props.onDeleteRoleButtonClick(item.uid)}}>
-                            <DeleteIcon/>
-                        </IconButton>
-                    </ListItemSecondaryAction>
-                </ListItem>
+                <RoleListItem key={item.uid} name={item.name} displayedName={item.displayedName} onRoleNameChange={(newValue) => {this.props.onRoleNameChange(item.uid, newValue)}}
+                        onDeleteButtonClick={() => {this.props.onDeleteRoleButtonClick(item.uid)}}
+                        onDisplayedNameChange={(newValue) => {this.props.onRoleDisplayedNameChange(item.uid, newValue)}}/>
             )
         })
 
-        return jsx;
+        let roleGroupsJSX = this.props.roleGroups.map( item => {
+            let groupedRolesJSX = groupedRoles.map( role => {
+                if (role.groupId !== item.uid) {
+                    return null;
+                }
+
+                else {
+                    return (
+                        <RoleListItem inset={true} key={role.uid} name={role.name} displayedName={role.displayedName} onRoleNameChange={(newValue) => {this.props.onRoleNameChange(role.uid, newValue)}}
+                        onDeleteButtonClick={() => {this.props.onDeleteRoleButtonClick(role.uid)}}
+                        onDisplayedNameChange={(newValue) => {this.props.onRoleDisplayedNameChange(role.uid, newValue)}}/>
+                    )
+                }
+            })
+
+            return (
+                <RoleGroup key={item.uid} name={item.name} castGroups={this.props.castGroups} 
+                    onAddRoleButtonClick={() => { this.props.onAddRoleToGroupButtonClick(item.uid) }}
+                    onNameChange={(newValue) => { this.props.onRoleGroupNameChange(item.uid, newValue)}}>
+                    {groupedRolesJSX}
+                </RoleGroup>
+            )
+            
+        })
+
+
+        return [
+            ...[(<ListSubheader key="individualroles"> Individual Roles </ListSubheader>)],
+            ...individualRolesJSX,
+            ...[(<ListSubheader key="rolegroups"> Role Groups </ListSubheader>)],
+            ...roleGroupsJSX,
+        ];
     }
 
     getCastMembersJSX() {
@@ -614,7 +662,12 @@ class AppDrawer extends React.Component {
             )
         })
 
-        return [...ungroupedCastJSX, ...groupJSX];
+        return [
+            ...[(<ListSubheader key="individualcast"> Individual Cast</ListSubheader>)],
+            ...ungroupedCastJSX,
+            ...[(<ListSubheader key="castgroups"> Cast Groups </ListSubheader>)],
+            ...groupJSX
+            ];
     }
 }
 
