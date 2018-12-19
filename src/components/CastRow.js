@@ -1,6 +1,6 @@
 import React from 'react';
 
-let EnsembleRow = (props) => {
+let CastRow = (props) => {
     let containerStyle = {
         alignSelf: 'center',
         justifySelf: 'stretch',
@@ -9,6 +9,7 @@ let EnsembleRow = (props) => {
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
+        height: 'fit-content',
     }
 
     return (
@@ -18,4 +19,4 @@ let EnsembleRow = (props) => {
     )
 }
 
-export default EnsembleRow;
+export default CastRow;

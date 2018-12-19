@@ -42,6 +42,7 @@
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
     "dexie": "^2.0.4",
     "fs-jetpack": "^2.2.0",
+    "material-ui-color-picker": "^3.0.0",
     "uuid": "^3.3.2"
   }
 }

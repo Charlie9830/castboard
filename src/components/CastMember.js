@@ -38,7 +38,7 @@ let CastMember = (props) => {
 
     return (
         <div style={containerStyle}>
-            <img style={headshotStyle} alt="Head not Found" src={props.headshotSrc}/>
+            <img style={headshotStyle} alt="Head not Found" src={'data:image/jpg;base64,' + props.headshot}/>
             <div style={nameStyle}> {props.name} </div>
             <div style={roleStyle}> {props.character} </div>
         </div>

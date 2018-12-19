@@ -6,15 +6,25 @@ const { dialog } = require('electron').remote;
 
 import CastMemberFactory from '../factories/CastMemberFactory';
 import RoleFactory from '../factories/RoleFactory';
+import SlideFactory from '../factories/SlideFactory';
+import ThemeFactory from '../factories/ThemeFactory';
+import CastRowFactory from '../factories/CastRowFactory';
 
 const mainDB = new Dexie('castboardMainDB');
 mainDB.version(1).stores({
     castMembers: 'uid, name',
     roles: 'uid, name',
     castChangeMap: 'uid',
+    slides: 'uid',
+    theme: 'uid',
 });
 
+mainDB.on('populate', () => {
+    mainDB.theme.put(ThemeFactory());
+})
+
 const castChangeId = "0";
+const themeId = "0";
 
 class AppContainer extends React.Component {
     constructor(props) {
@@ -25,7 +35,15 @@ class AppContainer extends React.Component {
             currentSlide: 0,
             castMembers: [],
             roles: [],
-            castChangeMap: {uid: castChangeId},
+            castChangeMap: { uid: castChangeId }, // Maps RoleId's to CastMemberId's
+            slides: [],
+            selectedSlideId: -1,
+            theme: ThemeFactory(),
+            roleSelectDialog: {
+                open: false,
+                onChoose: null,
+                onCancel: null,
+            }
         }
 
         // Method Bindings.
@@ -40,6 +58,21 @@ class AppContainer extends React.Component {
         this.handleRoleNameChange = this.handleRoleNameChange.bind(this);
         this.handleAddHeadshotButtonClick = this.handleAddHeadshotButtonClick.bind(this);
         this.handleCastChange = this.handleCastChange.bind(this);
+        this.handleAddSlideButtonClick = this.handleAddSlideButtonClick.bind(this);
+        this.handleSlideNameChange = this.handleSlideNameChange.bind(this);
+        this.handleSlideTypeChange = this.handleSlideTypeChange.bind(this);
+        this.handleDeleteSlideButtonClick = this.handleDeleteSlideButtonClick.bind(this);
+        this.handleSlideSelect = this.handleSlideSelect.bind(this);
+        this.handleChooseTitleSlideImageButtonClick = this.handleChooseTitleSlideImageButtonClick.bind(this);
+        this.handleChooseBackgroundImageButtonClick = this.handleChooseBackgroundImageButtonClick.bind(this);
+        this.handleInformationTextChange = this.handleInformationTextChange.bind(this);
+        this.handleInformationTextFontStyleChange = this.handleInformationTextFontStyleChange.bind(this);
+        this.handleBaseFontStyleChange = this.handleBaseFontStyleChange.bind(this);
+        this.handleAddRowToSlideButtonClick = this.handleAddRowToSlideButtonClick.bind(this);
+        this.handleAddRoleToCastRowButtonClick = this.handleAddRoleToCastRowButtonClick.bind(this);
+        this.handleSlideTitleChange = this.handleSlideTitleChange.bind(this);
+        this.handleSlideTitleFontStyleChange = this.handleSlideTitleFontStyleChange.bind(this);
+        this.handleCastRowRoleDeleteButtonClick = this.handleCastRowRoleDeleteButtonClick.bind(this);
     }
 
     componentDidMount() {
@@ -73,6 +106,25 @@ class AppContainer extends React.Component {
                 this.setState({ castChangeMap: result });
             }
         })
+
+        // Pull Down Slides
+        mainDB.slides.toArray( (result) => {
+            if (result.length > 0) {
+                let slides = [];
+                result.forEach( item => {
+                    slides.push( item );
+                })
+
+                this.setState({slides: slides});
+            }
+        })
+
+        // Pull Down Theme
+        mainDB.theme.get(themeId).then( result => {
+            if (result !== undefined) {
+                this.setState({ theme: result });
+            }
+        })
     }
 
     render() {
@@ -91,8 +143,296 @@ class AppContainer extends React.Component {
             onRoleNameChange={this.handleRoleNameChange}
             onAddHeadshotButtonClick={this.handleAddHeadshotButtonClick}
             onCastChange={this.handleCastChange}
-            castChangeMap={this.state.castChangeMap}/>
+            castChangeMap={this.state.castChangeMap}
+            onAddSlideButtonClick={this.handleAddSlideButtonClick}
+            slides={this.state.slides}
+            onSlideNameChange={this.handleSlideNameChange}
+            onSlideTypeChange={this.handleSlideTypeChange}
+            onDeleteSlideButtonClick={this.handleDeleteSlideButtonClick}
+            onSlideSelect={this.handleSlideSelect}
+            selectedSlideId={this.state.selectedSlideId}
+            onChooseTitleSlideImageButtonClick={this.handleChooseTitleSlideImageButtonClick}
+            onChooseBackgroundImageButtonClick={this.handleChooseBackgroundImageButtonClick}
+            theme={this.state.theme}
+            onInformationTextChange={this.handleInformationTextChange}
+            onInformationTextFontStyleChange={this.handleInformationTextFontStyleChange}
+            onBaseFontStyleChange={this.handleBaseFontStyleChange}
+            onAddRowToSlideButtonClick={this.handleAddRowToSlideButtonClick}
+            onAddRoleToCastRowButtonClick={this.handleAddRoleToCastRowButtonClick}
+            roleSelectDialog={this.state.roleSelectDialog}
+            onSlideTitleChange={this.handleSlideTitleChange}
+            onSlideTitleFontStyleChange={this.handleSlideTitleFontStyleChange}
+            onCastRowRoleDeleteButtonClick={this.handleCastRowRoleDeleteButtonClick}/>
         )
+    }
+
+    handleCastRowRoleDeleteButtonClick(slideId, castRowId, roleId) {
+
+    }
+
+    handleSlideTitleChange(uid, newValue) {
+        let slides = [...this.state.slides];
+        let slide = slides.find(item => {
+            return item.uid === uid;
+        })
+
+        slide.title = newValue;
+
+        this.setState({ slides: slides });
+
+        // Update Database
+        mainDB.slides.update(uid, { title: newValue }).then( () => {
+
+        })
+    }
+
+    handleSlideTitleFontStyleChange(uid, newValue) {
+        let slides = [...this.state.slides];
+        let slide = slides.find(item => {
+            return item.uid === uid;
+        })
+
+        slide.titleFontStyle = newValue;
+
+        this.setState({ slides: slides });
+
+        // Update Database
+        mainDB.slides.update(uid, { titleFontStyle: newValue }).then( () => {
+
+        })
+    }
+
+    handleAddRoleToCastRowButtonClick(slideId, rowId) {
+        let slides = [...this.state.slides];
+        let currentSlide = slides.find(item => {
+            return item.uid === slideId;
+        })
+
+        let castRow = currentSlide.castRows.find( item => {
+            return item.uid === rowId;
+        })
+
+        let onChoose = (roleId) => {
+            this.setState({roleSelectDialog: { open: false, onChoose: null, onCancel: null }});
+
+            let role = this.getRole(this.state.roles, roleId);
+            castRow.roles.push(role);
+
+            this.setState({slides: slides});
+
+            // Update Database
+            mainDB.slides.update(slideId, { castRows: currentSlide.castRows }).then(() => {
+
+            })
+            
+        }
+
+        let onCancel = () => {
+            this.setState({roleSelectDialog: { open: false, onChoose: null, onCancel: null }});
+        }
+
+        // Trigger Role Select Dialog.
+        this.setState({roleSelectDialog: { open: true, onChoose: onChoose, onCancel: onCancel}});
+        
+    }
+
+    getRole(roles, roleId) {
+        return roles.find(item => {
+            return item.uid === roleId;
+        })
+    }
+
+    handleAddRowToSlideButtonClick(uid) {
+        let slides = [...this.state.slides];
+        let slide = slides.find(item => {
+            return item.uid === uid;
+        })
+
+        let newCastRow = CastRowFactory(slide.castRows.length + 1);
+
+        slide.castRows.push(newCastRow);
+
+        this.setState({ slides: slides });
+
+        // Update Database
+        mainDB.slides.update(uid, { castRows: slide.castRows }).then( () => {
+
+        })
+    }
+
+    handleBaseFontStyleChange(newValue) {
+        let theme = {...this.state.theme};
+        theme.baseFontStyle = newValue;
+
+        this.setState({theme: theme});
+
+        mainDB.theme.update(themeId, { baseFontStyle: newValue }).then( () => {
+
+        })
+    }
+
+    handleInformationTextFontStyleChange(uid, newValue) {
+        let slides = [...this.state.slides];
+        let slide = slides.find(item => {
+            return item.uid === uid;
+        })
+
+        slide.informationTextFontStyle = newValue;
+
+        this.setState({ slides: slides });
+
+        // Update Database
+        mainDB.slides.update(uid, { informationTextFontStyle: newValue }).then( () => {
+
+        })
+    }
+
+    handleInformationTextChange(uid, newValue) {
+        let slides = [...this.state.slides];
+        let slide = slides.find(item => {
+            return item.uid === uid;
+        })
+
+        slide.informationText = newValue;
+
+        this.setState({ slides: slides });
+
+        // Update Database
+        mainDB.slides.update(uid, { informationText: newValue }).then( () => {
+
+        })
+    }
+
+    handleChooseBackgroundImageButtonClick() {
+        let options = {
+            title: "Choose Background Image",
+            buttonLabel: "Choose",
+        }
+
+        dialog.showOpenDialog(options, (filePaths => {
+            if (filePaths && filePaths.length > 0) {
+                let filePath = filePaths[0];
+                
+                jetpack.readAsync(filePath, "buffer").then( result => {
+                    let base64BackgroundImage = result.toString('base64');
+                    mainDB.theme.update(themeId, { backgroundImage: base64BackgroundImage }).then( dbUpdateResult => {
+
+                    })
+
+                    // Update State.
+                    let theme = {...this.state.theme};
+                    theme.backgroundImage = base64BackgroundImage;
+
+                    this.setState({ theme: theme});
+                })
+            }
+            
+        }))
+    }
+
+    handleChooseTitleSlideImageButtonClick() {
+        let slideId = this.state.selectedSlideId;
+
+        let options = {
+            title: "Choose Title Image",
+            buttonLabel: "Choose",
+        }
+
+        dialog.showOpenDialog(options, (filePaths => {
+            if (filePaths && filePaths.length > 0) {
+                let filePath = filePaths[0];
+                
+                jetpack.readAsync(filePath, "buffer").then( result => {
+                    let base64TitleImage = result.toString('base64');
+                    mainDB.slides.update(slideId, { titleImage: base64TitleImage }).then( dbUpdateResult => {
+
+                    })
+
+                    // Update State.
+                    let slides = [...this.state.slides];
+                    let slide = slides.find(item => {
+                        return item.uid === slideId;
+                    })
+
+                    slide.titleImage = base64TitleImage;
+
+                    this.setState({ slides: slides });
+                    
+                })
+            }
+            
+        }))
+    }
+
+    handleSlideSelect(uid) {
+        this.setState({ selectedSlideId: uid });
+    }
+
+    handleDeleteSlideButtonClick(uid) {
+        let slides = [...this.state.slides];
+        let slideIndex = slides.findIndex(item => {
+            return item.uid === uid;
+        })
+
+        if (slideIndex !== -1) {
+            slides.splice(slideIndex, 1);
+            
+            this.setState({ 
+                slides: slides,
+                selectedSlideId: -1,
+             });
+
+            // Delete from Database
+            mainDB.slides.delete(uid).then( () => {
+
+            })
+        }
+    }
+
+    handleSlideNameChange(uid, newValue) {
+        let slides = [...this.state.slides];
+        let slide = slides.find(item => {
+            return item.uid === uid;
+        })
+
+        slide.name = newValue;
+
+        this.setState({ slides: slides });
+
+        // Update Database
+        mainDB.slides.update(uid, { name: newValue }).then( () => {
+
+        })
+    }
+
+    handleSlideTypeChange(uid, newValue) {
+        let slides = [...this.state.slides];
+        let slide = slides.find(item => {
+            return item.uid === uid;
+        })
+
+        slide.type = newValue;
+
+        this.setState({ slides: slides });
+
+        // Update Database
+        mainDB.slides.update(uid, { type: newValue }).then( () => {
+
+        })
+    }
+
+    handleAddSlideButtonClick() {
+        let slides = [...this.state.slides];
+        let newSlide = SlideFactory(slides.length);
+
+        slides.push(newSlide);
+
+        this.setState({ slides: slides });
+
+        // Add to Database
+        mainDB.slides.add(newSlide).then( () => {
+
+        })
     }
 
     handleCastChange(roleId, castMemberId) {

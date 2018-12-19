@@ -1,8 +1,7 @@
 import React, { Component } from 'react';
-import Slide from './Slide';
-import CastMember from './CastMember';
-import EnsembleRow from './EnsembleRow';
 import AppDrawer from './AppDrawer';
+import SlideRenderer from './SlideRenderer';
+import SelectRoleDialog from './SelectRoleDialog';
 import '../assets/css/App.css';
 import BackgroundImageSrc from '../assets/media/Background.jpg';
 
@@ -21,21 +20,43 @@ import GeorginaHopson from '../assets/media/GeorginaHopson.jpeg';
 import RachelWard from '../assets/media/RachelWard.jpeg';
 import KathleenMoore from '../assets/media/KathleenMoore.jpeg';
 
-let cast =
-  [
-    { name: "Tina Arena", headshotSrc: TinaArena },
-    { name: "Paulo Szot", headshotSrc: PauloSzot },
-    { name: "Kurt Kansley", headshotSrc: KurtKansley },
-    { name: "Michael Falzon", headshotSrc: MichaelFalzon },
-    { name: "AlexisVanMaanen", headshotSrc: AlexisVanMaanen },
-  ]
+import { CssBaseline, AppBar, Toolbar, Typography } from '@material-ui/core';
+import { purple } from '@material-ui/core/colors';
 
 class App extends Component {
-  render() {
-    var slideJSX = this.getSlide(this.props.currentSlide);
+  constructor(props) {
+    super(props)
 
+    // State.
+    this.state = {
+      zoomLevel: 1,
+    }
+
+    // Method Bindings.
+    this.handleZoomInButtonClick = this.handleZoomInButtonClick.bind(this);
+    this.handleZoomOutButtonClick = this.handleZoomOutButtonClick.bind(this);
+  }
+
+
+  render() {
     return (
       <div className="App">
+        <CssBaseline/>
+
+        <SelectRoleDialog 
+        open={this.props.roleSelectDialog.open} 
+        onChoose={this.props.roleSelectDialog.onChoose}
+        onCancel={this.props.roleSelectDialog.onCancel}
+        roles={this.props.roles}/>
+
+        <div className="AppBarContainer">
+          <AppBar position="relative">
+            <Toolbar>
+              <Typography variant="h6"> Castboard </Typography>
+            </Toolbar>
+          </AppBar>
+        </div>
+
         <div className="AppDrawerContainer">
           <AppDrawer 
           onAddCastMemberButtonClick={this.props.onAddCastMemberButtonClick}
@@ -52,54 +73,93 @@ class App extends Component {
           currentSlide={this.props.currentSlide}
           onAddHeadshotButtonClick={this.props.onAddHeadshotButtonClick}
           onCastChange={this.props.onCastChange}
-          castChangeMap={this.props.castChangeMap}/>
+          castChangeMap={this.props.castChangeMap}
+          onAddSlideButtonClick={this.props.onAddSlideButtonClick}
+          slides={this.props.slides}
+          onSlideNameChange={this.props.onSlideNameChange}
+          onSlideTypeChange={this.props.onSlideTypeChange}
+          onDeleteSlideButtonClick={this.props.onDeleteSlideButtonClick}
+          onSlideSelect={this.props.onSlideSelect}
+          selectedSlideId={this.props.selectedSlideId}
+          onChooseTitleSlideImageButtonClick={this.props.onChooseTitleSlideImageButtonClick}
+          onChooseBackgroundImageButtonClick={this.props.onChooseBackgroundImageButtonClick}
+          onInformationTextChange={this.props.onInformationTextChange}
+          onInformationTextFontStyleChange={this.props.onInformationTextFontStyleChange}
+          theme={this.props.theme}
+          onBaseFontStyleChange={this.props.onBaseFontStyleChange}
+          onAddRowToSlideButtonClick={this.props.onAddRowToSlideButtonClick}
+          onAddRoleToCastRowButtonClick={this.props.onAddRoleToCastRowButtonClick}
+          onSlideTitleChange={this.props.onSlideTitleChange}
+          onSlideTitleFontStyleChange={this.props.onSlideTitleFontStyleChange}
+          onZoomInButtonClick={this.handleZoomInButtonClick}
+          onZoomOutButtonClick={this.handleZoomOutButtonClick}
+          onCastRowRoleDeleteButtonClick={this.props.onCastRowRoleDeleteButtonClick}/>
         </div>
 
-        <div className="AppContentContainer">
-          
+        <div className="SlidePreviewContainer" style={{transform: `scale(${this.state.zoomLevel})`}}>
+          <SlideRenderer theme={this.props.theme} slide={this.getCurrentSlide(this.props.slides, this.props.selectedSlideId)}
+          castMembers={this.props.castMembers} castChangeMap={this.props.castChangeMap} />
         </div>
         
       </div>
     );
   }
 
-  getSlide(slideNumber) {
-      // Keep all Slides loaded in the Dom and use the "visible" prop to display each slide by itself. This Keeps the headshots
-      // loaded in the DOM.
-      return (
-        <React.Fragment>
-          <Slide visible={slideNumber === 0} title="AT THIS PERFORMANCE" backgroundImageSrc={BackgroundImageSrc}>
-            <CastMember headshotSrc={TinaArena} name="Tina Arena" character="Eva Peron" billing="principle" />
-          </Slide>
-
-          <Slide visible={slideNumber === 1}  title="AT THIS PERFORMANCE" backgroundImageSrc={BackgroundImageSrc}>
-            <EnsembleRow>
-              <CastMember headshotSrc={PauloSzot} name="Paulo Szot" character="Peron" billing="lead" />
-              <CastMember headshotSrc={KurtKansley} name="Kurt Kansley" character="Che" billing="lead" />
-              <CastMember headshotSrc={MichaelFalzon} name="Michael Falzon" character="Magaldi" billing="lead" />
-              <CastMember headshotSrc={AlexisVanMaanen} name="Alexis Van Maanen" character="Mistress" billing="lead" />
-            </EnsembleRow>
-          </Slide>
-
-          <Slide visible={slideNumber === 2}  title="AT THIS PERFORMANCE" backgroundImageSrc={BackgroundImageSrc}>
-            <EnsembleRow>
-              <CastMember headshotSrc={OliviaCarniato} name="Olivia Carniato" character="Ensemble" billing="ensemble" />
-              <CastMember headshotSrc={AlieCoste} name="Alie Coste" character="Ensemble" billing="ensemble" />
-              <CastMember headshotSrc={SamanthaDodemaide} name="Samantha Dodemaide" character="Ensemble" billing="ensemble" />
-              <CastMember headshotSrc={LauraField} name="Laura Field" character="Ensemble" billing="ensemble" />
-              <CastMember headshotSrc={AshleighGurnett} name="Ashleigh Gurnett" character="Ensemble" billing="ensemble" />
-            </EnsembleRow>
-
-            <EnsembleRow>
-              <CastMember headshotSrc={KateMareeHoolihan} name="Kate Maree Hoolihan" character="Ensemble" billing="ensemble" />
-              <CastMember headshotSrc={GeorginaHopson} name="Georgina Hopson" character="Ensemble" billing="ensemble" />
-              <CastMember headshotSrc={RachelWard} name="Rachel Ward" character="Ensemble" billing="ensemble" />
-              <CastMember headshotSrc={KathleenMoore} name="Kathleen Moore" character="Ensemble" billing="ensemble" />
-            </EnsembleRow>
-          </Slide>
-        </React.Fragment>
-      )
+  handleZoomInButtonClick() {
+    this.setState({zoomLevel: this.state.zoomLevel + 0.1});
   }
+
+  handleZoomOutButtonClick() {
+    this.setState({zoomLevel: this.state.zoomLevel - 0.1});
+  }
+
+  getCurrentSlide(slides, slideId) {
+    if (slideId === -1) {
+      return null;
+    }
+
+    return slides.find(item => {
+      return item.uid === slideId;
+    })
+  }
+
+  // getSlide(slideNumber) {
+  //     // Keep all Slides loaded in the Dom and use the "visible" prop to display each slide by itself. This Keeps the headshots
+  //     // loaded in the DOM.
+  //     return (
+  //       <React.Fragment>
+  //         <Slide visible={slideNumber === 0} title="AT THIS PERFORMANCE" backgroundImageSrc={BackgroundImageSrc}>
+  //           <CastMember headshotSrc={TinaArena} name="Tina Arena" character="Eva Peron" billing="principle" />
+  //         </Slide>
+// 
+  //         <Slide visible={slideNumber === 1}  title="AT THIS PERFORMANCE" backgroundImageSrc={BackgroundImageSrc}>
+  //           <EnsembleRow>
+  //             <CastMember headshotSrc={PauloSzot} name="Paulo Szot" character="Peron" billing="lead" />
+  //             <CastMember headshotSrc={KurtKansley} name="Kurt Kansley" character="Che" billing="lead" />
+  //             <CastMember headshotSrc={MichaelFalzon} name="Michael Falzon" character="Magaldi" billing="lead" />
+  //             <CastMember headshotSrc={AlexisVanMaanen} name="Alexis Van Maanen" character="Mistress" billing="lead" />
+  //           </EnsembleRow>
+  //         </Slide>
+
+  //         <Slide visible={slideNumber === 2}  title="AT THIS PERFORMANCE" backgroundImageSrc={BackgroundImageSrc}>
+  //           <EnsembleRow>
+  //             <CastMember headshotSrc={OliviaCarniato} name="Olivia Carniato" character="Ensemble" billing="ensemble" />
+  //             <CastMember headshotSrc={AlieCoste} name="Alie Coste" character="Ensemble" billing="ensemble" />
+  //             <CastMember headshotSrc={SamanthaDodemaide} name="Samantha Dodemaide" character="Ensemble" billing="ensemble" />
+  //             <CastMember headshotSrc={LauraField} name="Laura Field" character="Ensemble" billing="ensemble" />
+  //             <CastMember headshotSrc={AshleighGurnett} name="Ashleigh Gurnett" character="Ensemble" billing="ensemble" />
+  //           </EnsembleRow>
+
+  //           <EnsembleRow>
+  //             <CastMember headshotSrc={KateMareeHoolihan} name="Kate Maree Hoolihan" character="Ensemble" billing="ensemble" />
+  //             <CastMember headshotSrc={GeorginaHopson} name="Georgina Hopson" character="Ensemble" billing="ensemble" />
+  //             <CastMember headshotSrc={RachelWard} name="Rachel Ward" character="Ensemble" billing="ensemble" />
+  //             <CastMember headshotSrc={KathleenMoore} name="Kathleen Moore" character="Ensemble" billing="ensemble" />
+  //           </EnsembleRow>
+  //         </Slide>
+  //       </React.Fragment>
+  //     )
+  // }
 }
 
 export default App;

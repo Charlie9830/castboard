@@ -1,0 +1,33 @@
+.FontStylePickerGrid {
+    display: grid;
+    width: fit-content;
+    height: fit-content;
+    grid-template-rows: 1fr 1fr;
+    grid-template-columns: 120px min-content min-content;
+    grid-template-areas:
+    'FontFamily FontSize Bold'
+    'Color          .    Italic';
+    grid-column-gap: 10px;
+}
+
+.FontStylePickerFontFamily {
+    grid-area: FontFamily;
+}
+
+.FontStylePickerFontSize {
+    grid-area: FontSize;
+}
+
+.FontStylePickerBold {
+    grid-area: Bold;
+}
+
+.FontStylePickerColor {
+    grid-area: Color;
+    justify-self: flex-start;
+    align-self: center;
+}
+
+.FontStylePickerItalic {
+    grid-area: Italic;
+}
