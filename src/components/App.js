@@ -113,7 +113,18 @@ class App extends Component {
           onRoleDisplayedNameChange={this.props.onRoleDisplayedNameChange}
           onRoleGroupDeleteButtonClick={this.props.onRoleGroupDeleteButtonClick}
           onCastGroupDeleteButtonClick={this.props.onCastGroupDeleteButtonClick}
-          onGroupCastChange={this.props.onGroupCastChange}/>
+          onGroupCastChange={this.props.onGroupCastChange}
+          onAddOrchestraMemberButtonClick={this.props.onAddOrchestraMemberButtonClick}
+          orchestraMembers={this.props.orchestraMembers}
+          onOrchestraMemberNameChange={this.props.onOrchestraMemberNameChange}
+          onOrchestraMemberDeleteButtonClick={this.props.onOrchestraMemberDeleteButtonClick}
+          orchestraRoles={this.props.orchestraRoles}
+          onAddOrchestraRoleButtonClick={this.props.onAddOrchestraRoleButtonClick}
+          onOrchestraRoleNameChange={this.props.onOrchestraRoleNameChange}
+          onOrchestraRoleDeleteButtonClick={this.props.onOrchestraRoleDeleteButtonClick}
+          onOrchestraRoleBillingChange={this.props.onOrchestraRoleBillingChange}
+          onOrchestraChange={this.props.onOrchestraChange}
+          orchestraChangeMap={this.props.orchestraChangeMap}/>
         </div>
 
         <div className="SlidePreviewContainer" style={{transform: `scale(${this.state.zoomLevel})`}}>

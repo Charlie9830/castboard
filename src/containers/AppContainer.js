@@ -18,6 +18,8 @@ import CastRowFactory from '../factories/CastRowFactory';
 import CastGroupFactory from '../factories/CastGroupFactory';
 import RoleGroupFactory from '../factories/RoleGroupFactory';
 import CastChangeEntryFactory from '../factories/CastChangeEntryFactory';
+import OrchestraMemberFactory from '../factories/OrchestraMemberFactory';
+import OrchestraRoleFactory from '../factories/OrchestraRoleFactory';
 
 const mainDB = new Dexie('castboardMainDB');
 mainDB.version(1).stores({
@@ -26,8 +28,11 @@ mainDB.version(1).stores({
     roles: 'uid, name, groupId',
     roleGroups: 'uid',
     castChangeMap: 'uid',
+    orchestraChangeMap: 'uid',
     slides: 'uid',
     theme: 'uid',
+    orchestraMembers: 'uid',
+    orchestraRoles: 'uid',
 });
 
 mainDB.on('populate', () => {
@@ -36,6 +41,7 @@ mainDB.on('populate', () => {
 
 const castChangeId = "0";
 const themeId = "0";
+const orchestraChangeId = "0";
 
 const muiTheme = createMuiTheme({
     palette: {
@@ -62,7 +68,10 @@ class AppContainer extends React.Component {
             roles: [],
             roleGroups: [],
             castChangeMap: { uid: castChangeId }, // Maps RoleId's to CastMemberId's
+            orchestraChangeMap: { uid: orchestraChangeId }, // Maps OrchestraRoleIds to OrchestraMemberIds.
             slides: [],
+            orchestraMembers: [],
+            orchestraRoles: [],
             selectedSlideId: -1,
             theme: ThemeFactory(),
             roleSelectDialog: {
@@ -117,6 +126,15 @@ class AppContainer extends React.Component {
         this.handleRoleGroupDeleteButtonClick = this.handleRoleGroupDeleteButtonClick.bind(this);
         this.handleCastGroupDeleteButtonClick = this.handleCastGroupDeleteButtonClick.bind(this);
         this.handleGroupCastChange = this.handleGroupCastChange.bind(this);
+        this.handleAddOrchestraMemberButtonClick = this.handleAddOrchestraMemberButtonClick.bind(this);
+        this.handleOrchestraMemberNameChange = this.handleOrchestraMemberNameChange.bind(this);
+        this.handleOrchestraMemberDeleteButtonClick = this.handleOrchestraMemberDeleteButtonClick.bind(this);
+        this.handleOrchestraRoleNameChange = this.handleOrchestraRoleNameChange.bind(this);
+        this.handleOrchestraRoleDeleteButtonClick = this.handleOrchestraRoleDeleteButtonClick.bind(this);
+        this.handleOrchestraRoleBillingChange = this.handleOrchestraRoleBillingChange.bind(this);
+        this.handleAddOrchestraRoleButtonClick = this.handleAddOrchestraRoleButtonClick.bind(this);
+        this.handleOrchestraChange = this.handleOrchestraChange.bind(this);
+    
     }
 
     componentDidMount() {
@@ -151,6 +169,13 @@ class AppContainer extends React.Component {
             }
         })
 
+        // Pull down OrchestraChange.
+        mainDB.orchestraChangeMap.get(orchestraChangeId).then( result => {
+            if (result !== undefined) {
+                this.setState({ orchestraChangeMap: result });
+            }
+        })
+
         // Pull Down Slides
         mainDB.slides.toArray( (result) => {
             if (result.length > 0) {
@@ -160,6 +185,30 @@ class AppContainer extends React.Component {
                 })
 
                 this.setState({slides: slides});
+            }
+        })
+
+        // Pull Down Orchestra Members
+        mainDB.orchestraMembers.toArray((result) => {
+            if (result.length > 0) {
+                let orchestraMembers = [];
+                result.forEach(item => {
+                    orchestraMembers.push(item);
+                })
+
+                this.setState({ orchestraMembers: orchestraMembers });
+            }
+        })
+
+        // Pull Down Orchestra Members
+        mainDB.orchestraRoles.toArray((result) => {
+            if (result.length > 0) {
+                let orchestraRoles = [];
+                result.forEach(item => {
+                    orchestraRoles.push(item);
+                })
+
+                this.setState({ orchestraRoles: orchestraRoles });
             }
         })
 
@@ -251,11 +300,147 @@ class AppContainer extends React.Component {
                     onRoleDisplayedNameChange={this.handleRoleDisplayedNameChange}
                     onRoleGroupDeleteButtonClick={this.handleRoleGroupDeleteButtonClick}
                     onCastGroupDeleteButtonClick={this.handleCastGroupDeleteButtonClick}
-                    onGroupCastChange={this.handleGroupCastChange}/>
+                    onGroupCastChange={this.handleGroupCastChange}
+                    onAddOrchestraMemberButtonClick={this.handleAddOrchestraMemberButtonClick}
+                    orchestraMembers={this.state.orchestraMembers}
+                    onOrchestraMemberNameChange={this.handleOrchestraMemberNameChange}
+                    onOrchestraMemberDeleteButtonClick={this.handleOrchestraMemberDeleteButtonClick}
+                    orchestraRoles={this.state.orchestraRoles}
+                    onAddOrchestraRoleButtonClick={this.handleAddOrchestraRoleButtonClick}
+                    onOrchestraRoleNameChange={this.handleOrchestraRoleNameChange}
+                    onOrchestraRoleDeleteButtonClick={this.handleOrchestraRoleDeleteButtonClick}
+                    onOrchestraRoleBillingChange={this.handleOrchestraRoleBillingChange}
+                    onOrchestraChange={this.handleOrchestraChange}
+                    orchestraChangeMap={this.state.orchestraChangeMap}/>
             </MuiThemeProvider>
         )
     }
 
+    handleOrchestraChange(orchestraRoleId, orchestraMemberId) {
+        let orchestraChangeMap = { ...this.state.orchestraChangeMap };
+
+        orchestraChangeMap[orchestraRoleId] = orchestraMemberId;
+
+        this.setState({ orchestraChangeMap: orchestraChangeMap });
+
+        // Add to Database.
+        mainDB.orchestraChangeMap.put(orchestraChangeMap).then(result => {
+
+        })
+    }
+
+    handleOrchestraRoleBillingChange(uid, newValue) {
+        let orchestraRoles = [...this.state.orchestraRoles];
+        let orchestraRole = orchestraRoles.find(item => {
+            return item.uid === uid;
+        })
+
+        orchestraRole.billing = newValue;
+
+        this.setState({orchestraRoles: orchestraRoles});
+
+        // Update DB
+        mainDB.orchestraRoles.update(uid, { billing: newValue }).then( result => {
+
+        })
+    }
+
+    handleOrchestraRoleNameChange(uid, newValue) {
+        let orchestraRoles = [...this.state.orchestraRoles];
+        let orchestraMember = orchestraRoles.find(item => {
+            return item.uid === uid;
+        })
+
+        orchestraMember.name = newValue;
+
+        this.setState({orchestraRoles: orchestraRoles});
+
+        // Update DB.
+        mainDB.orchestraRoles.update(uid, { name: newValue }).then( result => {
+
+        })
+    }
+
+    handleOrchestraRoleDeleteButtonClick(uid) {
+        let orchestraRoles = [...this.state.orchestraRoles];
+        let orchestraMemberIndex = orchestraRoles.findIndex(item => {
+            return item.uid === uid;
+        });
+
+        if (orchestraMemberIndex !== -1) {
+            orchestraRoles.splice(orchestraMemberIndex, 1);
+
+            this.setState({orchestraRoles: orchestraRoles});
+
+            // Update DB.
+            mainDB.orchestraRoles.delete(uid).then( result => {
+
+            })
+        }
+    }
+
+    handleAddOrchestraRoleButtonClick() {
+        let orchestraRoles = [...this.state.orchestraRoles];
+        let newOrchestraRole = OrchestraRoleFactory();
+
+        orchestraRoles.push(newOrchestraRole);
+
+        this.setState({orchestraRoles: orchestraRoles});
+
+        // Handle Database.
+        mainDB.orchestraRoles.add(newOrchestraRole).then( () => {
+
+        })
+    }
+
+    handleOrchestraMemberDeleteButtonClick(uid) {
+        let orchestraMembers = [...this.state.orchestraMembers];
+        let orchestraMemberIndex = orchestraMembers.findIndex(item => {
+            return item.uid === uid;
+        });
+
+        if (orchestraMemberIndex !== -1) {
+            orchestraMembers.splice(orchestraMemberIndex, 1);
+
+            this.setState({orchestraMembers: orchestraMembers});
+
+            // Update DB.
+            mainDB.orchestraMembers.delete(uid).then( result => {
+
+            })
+        }
+    }   
+
+    handleOrchestraMemberNameChange(uid, newValue) {
+        let orchestraMembers = [...this.state.orchestraMembers];
+        let orchestraMember = orchestraMembers.find(item => {
+            return item.uid === uid;
+        })
+
+        orchestraMember.name = newValue;
+
+        this.setState({orchestraMembers: orchestraMembers});
+
+        // Update DB.
+        mainDB.orchestraMembers.update(uid, { name: newValue }).then( result => {
+
+        })
+    }
+
+    handleAddOrchestraMemberButtonClick() {
+        let orchestraMembers = [...this.state.orchestraMembers];
+        let newOrchestraMember = OrchestraMemberFactory();
+
+        orchestraMembers.push(newOrchestraMember);
+
+        this.setState({ orchestraMembers: orchestraMembers });
+
+        // Add to Database.
+        mainDB.orchestraMembers.add(newOrchestraMember).then(() => {
+
+        });
+        
+    }
 
     handleCastGroupDeleteButtonClick(groupId) {
         let castGroups = [...this.state.castGroups];

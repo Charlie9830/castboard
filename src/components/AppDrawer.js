@@ -3,6 +3,7 @@ import FontStylePicker from './FontStylePicker';
 import HeadshotFontStylePicker from './HeadshotFontStylePicker';
 import CastGroup from './CastGroup';
 import CastMemberSelect from './CastMemberSelect';
+import OrchestraMemberSelect from './OrchestraMemberSelect';
 import CastGroupChooser from './CastGroupChooser';
 
 import { Drawer, AppBar, Toolbar, Typography, Grid, Tabs, Tab, List, Button, ListItem,
@@ -29,6 +30,7 @@ import GetCastIdFromMap from '../utilties/GetCastIdFromMap';
 import ColorPicker from './ColorPicker';
 import RoleGroupFactory from '../factories/RoleGroupFactory';
 import RoleGroup from './RoleGroup';
+import GetOrchestraIdFromMap from '../utilties/GetOrchestraIdFromMap';
 
 let RoleListItem = (props) => {
     return (
@@ -101,6 +103,16 @@ let BillingSelect = (props) => {
     )
 }
 
+let OrchestraBillingSelect = (props) => {
+    return (
+        <Select style={{marginLeft: '8px', marginRight: '8px'}} onChange={props.onChange} value={props.value}>
+            <MenuItem value="conductor"> Conductor </MenuItem>
+            <MenuItem value="associate"> Associate </MenuItem>
+            <MenuItem value="musician"> Musician </MenuItem>
+        </Select>
+    )
+}
+
 let HeadshotListItemIcon = (props) => {
     if (props.headshot === undefined) {
         return (
@@ -123,8 +135,8 @@ class AppDrawer extends React.Component {
 
         // State.
         this.state = {
-            primaryTab: 1,
-            secondaryTab: 0
+            primaryTab: 0,
+            secondaryTab: 2
         }
 
         // Method Bindings.
@@ -143,6 +155,12 @@ class AppDrawer extends React.Component {
         this.getCastSlidePropertiesJSX = this.getCastSlidePropertiesJSX.bind(this);
         this.getCastRowsJSX = this.getCastRowsJSX.bind(this);
         this.getCastTabJSX = this.getCastTabJSX.bind(this);
+        this.getOrchestraSetupTabJSX = this.getOrchestraSetupTabJSX.bind(this);
+        this.getOrchestraMembersJSX = this.getOrchestraMembersJSX.bind(this);
+        this.getOrchestraRolesTabJSX = this.getOrchestraRolesTabJSX.bind(this);
+        this.getOrchestraRolesJSX = this.getOrchestraRolesJSX.bind(this);
+        this.getOrchestraChangeTabJSX = this.getOrchestraChangeTabJSX.bind(this);
+        this.getOrchestraChangeItems = this.getOrchestraChangeItems.bind(this);
     }
 
     render() {
@@ -172,19 +190,46 @@ class AppDrawer extends React.Component {
                         </Grid>
                     </Toolbar>
 
-                    <Tabs value={this.state.primaryTab} onChange={(e, value) => {this.setState({primaryTab: value})}}>
+                    <Tabs fullWidth value={this.state.primaryTab} onChange={(e, value) => {this.setState({primaryTab: value})}}>
                         <Tab label="Setup"/>
                         <Tab label="Cast Change"/>
+                        <Tab label="Orchestra Change"/>
                         <Tab label="Slide Builder"/>
                     </Tabs>
                 </AppBar>
 
                     {this.state.primaryTab === 0 && this.getSetupTabJSX()}
                     {this.state.primaryTab === 1 && this.getCastChangeTabJSX()}
-                    {this.state.primaryTab === 2 && this.getSlidesTabJSX()}
+                    {this.state.primaryTab === 2 && this.getOrchestraChangeTabJSX()}
+                    {this.state.primaryTab === 3 && this.getSlidesTabJSX()}
                 
             </Grid>
         )
+    }
+
+    getOrchestraChangeTabJSX() {
+        return (
+            <List style={{width: '100%'}}>
+                {this.getOrchestraChangeItems()}
+            </List>
+        )
+    }
+
+    getOrchestraChangeItems() {
+        let jsx = this.props.orchestraRoles.map( item => {
+            return (
+                <ListItem key={item.uid} divider={true}>
+                    <ListItemText primary={item.name}/>
+                    <ListItemSecondaryAction>
+                        <OrchestraMemberSelect value={GetOrchestraIdFromMap(this.props.orchestraChangeMap, item.uid)}
+                        onChange={(e) =>{this.props.onOrchestraChange(item.uid, e.target.value)}}
+                        orchestraMembers={this.props.orchestraMembers}/>
+                    </ListItemSecondaryAction>
+                </ListItem>
+            )
+        })
+
+        return jsx;
     }
 
     getSlidesTabJSX() {
@@ -389,8 +434,7 @@ class AppDrawer extends React.Component {
                                 onChange={(fontStyle) => { this.props.onInformationTextFontStyleChange(selectedSlide.uid, fontStyle) }} />
                         </Grid>
                     </ListItemSecondaryAction>
-                </List>
-                    
+                </List> 
             )
         }
     }
@@ -551,19 +595,98 @@ class AppDrawer extends React.Component {
             <React.Fragment>
                 <AppBar position="relative" color="secondary">
                     <Toolbar>
-                        <Tabs value={this.state.secondaryTab} onChange={ (e, value) => { this.setState({ secondaryTab: value})}}>
+                        <Tabs fullWidth value={this.state.secondaryTab} onChange={ (e, value) => { this.setState({ secondaryTab: value})}}>
                             <Tab label="Cast" />
                             <Tab label="Roles" />
+                            <Tab label="Orchestra"/>
+                            <Tab label="Orchestra Roles"/>
                         </Tabs>
                     </Toolbar>
                 </AppBar>
                     
-                    
                     { this.state.secondaryTab === 0 && this.getCastTabJSX() }
                     { this.state.secondaryTab === 1 && this.getRolesTabJSX() }
+                    { this.state.secondaryTab === 2 && this.getOrchestraSetupTabJSX()}
+                    { this.state.secondaryTab === 3 && this.getOrchestraRolesTabJSX()}
             </React.Fragment>
             
         )
+    }
+
+    getOrchestraRolesTabJSX() {
+        return (
+            <React.Fragment>
+                <Grid container
+                    direction="row">
+                    <Button onClick={this.props.onAddOrchestraRoleButtonClick}> Add Orchestra Role </Button>
+                </Grid>
+                <List style={{width: '100%'}}>
+                    {this.getOrchestraRolesJSX()}
+                </List>
+            </React.Fragment>
+        )
+    }
+
+    getOrchestraRolesJSX() {
+        let jsx = this.props.orchestraRoles.map( item => {
+            console.log(item);
+            return (
+                <ListItem key={item.uid}>
+                    <ListItemIcon>
+                        <PersonIcon/>
+                    </ListItemIcon>
+                    <TextField defaultValue={item.name} 
+                    onChange={(e) => {this.props.onOrchestraRoleNameChange(item.uid, e.target.value)}}/>
+                    <OrchestraBillingSelect value={item.billing} 
+                    onChange={(e) => {this.props.onOrchestraRoleBillingChange(item.uid, e.target.value)}}/>
+                    <ListItemSecondaryAction>
+                        <IconButton onClick={() => {this.props.onOrchestraRoleDeleteButtonClick(item.uid)}}>
+                            <DeleteIcon/>
+                        </IconButton>
+                    </ListItemSecondaryAction>
+                </ListItem>
+            )
+        })
+
+        return jsx;
+    }
+
+    getOrchestraSetupTabJSX() {
+        return (
+            <React.Fragment>
+                <Grid container
+                    direction="row">
+                    <IconButton onClick={this.props.onAddOrchestraMemberButtonClick}>
+                        <AddPersonIcon/>
+                    </IconButton>
+                </Grid>
+
+                <List style={{width: '100%'}}>
+                    {this.getOrchestraMembersJSX()}
+                </List>
+            </React.Fragment>
+        )
+    }
+
+    getOrchestraMembersJSX() {
+        let jsx = this.props.orchestraMembers.map( item => {
+            return (
+                <ListItem key={item.uid}>
+                    <ListItemIcon>
+                        <PersonIcon />
+                    </ListItemIcon>
+                    <TextField defaultValue={item.name} placeholder="Orchestra Member Name"
+                    onBlur={(e) => {this.props.onOrchestraMemberNameChange(item.uid, e.target.value)}}/>
+                    <ListItemSecondaryAction>
+                        <IconButton onClick={() => {this.props.onOrchestraMemberDeleteButtonClick(item.uid)}}>
+                            <DeleteIcon/>
+                        </IconButton>
+                    </ListItemSecondaryAction>
+                </ListItem>
+            )
+        })
+
+        return jsx;
     }
 
     getCastTabJSX() {
