@@ -3,6 +3,7 @@ import SlideBase from './SlideBase';
 import GetStyleFromFontStyle from '../../utilties/GetStyleFromFontStyle';
 import CastRow from '../CastRow';
 import CastMember from '../CastMember';
+import GetCastIdFromMap from '../../utilties/GetCastIdFromMap';
 
 let CastSlide = (props) => {
     let containerStyle = {
@@ -55,7 +56,7 @@ let CastSlide = (props) => {
 let getSlideContentsJSX = (slide, castMembers, castChangeMap, theme) => {
     let jsx = slide.castRows.map( row => {
         let rolesJSX = row.roles.map( role => {
-            let castId = castChangeMap[role.uid];
+            let castId = GetCastIdFromMap(castChangeMap, role.uid );
 
             if (castId === undefined || castId === -1) {
                 // Track Cut

@@ -110,7 +110,10 @@ class App extends Component {
           onAddRoleToGroupButtonClick={this.props.onAddRoleToGroupButtonClick}
           roleGroups={this.props.roleGroups}
           onRoleGroupNameChange={this.props.onRoleGroupNameChange}
-          onRoleDisplayedNameChange={this.props.onRoleDisplayedNameChange}/>
+          onRoleDisplayedNameChange={this.props.onRoleDisplayedNameChange}
+          onRoleGroupDeleteButtonClick={this.props.onRoleGroupDeleteButtonClick}
+          onCastGroupDeleteButtonClick={this.props.onCastGroupDeleteButtonClick}
+          onGroupCastChange={this.props.onGroupCastChange}/>
         </div>
 
         <div className="SlidePreviewContainer" style={{transform: `scale(${this.state.zoomLevel})`}}>

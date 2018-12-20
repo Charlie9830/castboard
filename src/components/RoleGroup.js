@@ -1,7 +1,7 @@
 import React from 'react';
 import PeopleIcon from '@material-ui/icons/People';
 import AddPersonIcon from '@material-ui/icons/PersonAdd';
-import MoreVertIcon from '@material-ui/icons/MoreVert';
+import DeleteIcon from '@material-ui/icons/Delete';
 import { List, ListItem, ListItemIcon, TextField, ListItemSecondaryAction, IconButton } from '@material-ui/core';
 
 let RoleGroup = (props) => {
@@ -19,8 +19,8 @@ let RoleGroup = (props) => {
                     <IconButton onClick={props.onAddRoleButtonClick}>
                         <AddPersonIcon />
                     </IconButton>
-                    <IconButton>
-                        <MoreVertIcon />
+                    <IconButton onClick={props.onDeleteRoleGroupButtonClick}>
+                        <DeleteIcon />
                     </IconButton>
                 </ListItemSecondaryAction>
             </ListItem>

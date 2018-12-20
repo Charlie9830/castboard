@@ -17,12 +17,13 @@ import ThemeFactory from '../factories/ThemeFactory';
 import CastRowFactory from '../factories/CastRowFactory';
 import CastGroupFactory from '../factories/CastGroupFactory';
 import RoleGroupFactory from '../factories/RoleGroupFactory';
+import CastChangeEntryFactory from '../factories/CastChangeEntryFactory';
 
 const mainDB = new Dexie('castboardMainDB');
 mainDB.version(1).stores({
-    castMembers: 'uid, name',
+    castMembers: 'uid, name, groupId',
     castGroups: 'uid',
-    roles: 'uid, name',
+    roles: 'uid, name, groupId',
     roleGroups: 'uid',
     castChangeMap: 'uid',
     slides: 'uid',
@@ -113,6 +114,9 @@ class AppContainer extends React.Component {
         this.handleAddRoleToGroupButtonClick = this.handleAddRoleToGroupButtonClick.bind(this);
         this.handleRoleGroupNameChange = this.handleRoleGroupNameChange.bind(this);
         this.handleRoleDisplayedNameChange = this.handleRoleDisplayedNameChange.bind(this);
+        this.handleRoleGroupDeleteButtonClick = this.handleRoleGroupDeleteButtonClick.bind(this);
+        this.handleCastGroupDeleteButtonClick = this.handleCastGroupDeleteButtonClick.bind(this);
+        this.handleGroupCastChange = this.handleGroupCastChange.bind(this);
     }
 
     componentDidMount() {
@@ -244,9 +248,89 @@ class AppContainer extends React.Component {
                     roleGroups={this.state.roleGroups}
                     onAddRoleToGroupButtonClick={this.handleAddRoleToGroupButtonClick}
                     onRoleGroupNameChange={this.handleRoleGroupNameChange}
-                    onRoleDisplayedNameChange={this.handleRoleDisplayedNameChange}/>
+                    onRoleDisplayedNameChange={this.handleRoleDisplayedNameChange}
+                    onRoleGroupDeleteButtonClick={this.handleRoleGroupDeleteButtonClick}
+                    onCastGroupDeleteButtonClick={this.handleCastGroupDeleteButtonClick}
+                    onGroupCastChange={this.handleGroupCastChange}/>
             </MuiThemeProvider>
         )
+    }
+
+
+    handleCastGroupDeleteButtonClick(groupId) {
+        let castGroups = [...this.state.castGroups];
+        let castGroupIndex = castGroups.findIndex(item => {
+            return item.uid === groupId;
+        });
+
+        // Extract Cast Members belonging to this group.
+        let castMembers = [...this.state.castMembers];
+        let childCast = castMembers.filter(item => {
+            return item.groupId === groupId;
+        })
+
+        if (castGroupIndex !== -1) {
+            castGroups.splice(castGroupIndex, 1);
+
+            // Set the roles once belonging to this group to Individual.
+            childCast.forEach( childRole => {
+                childRole.groupId = "-1";
+            })
+
+            this.setState({
+                castGroups: castGroups,
+                castMembers: castMembers,
+            })
+
+            // Update Database.
+            mainDB.castGroups.delete(groupId).then(() => {
+
+            })
+
+            mainDB.castMembers.where("groupId").equals(groupId).modify({ groupId: "-1"}).then(() => {
+
+            }).catch( error => {
+                console.log(error);
+            })
+        }
+    }
+
+    handleRoleGroupDeleteButtonClick(groupId) {
+        let roleGroups = [...this.state.roleGroups];
+        let roleGroupIndex = roleGroups.findIndex(item => {
+            return item.uid === groupId;
+        });
+
+        // Extract Roles belonging to this group.
+        let roles = [...this.state.roles];
+        let childRoles = roles.filter(item => {
+            return item.groupId === groupId;
+        })
+
+        if (roleGroupIndex !== -1) {
+            roleGroups.splice(roleGroupIndex, 1);
+
+            // Set the roles once belonging to this group to Individual.
+            childRoles.forEach( childRole => {
+                childRole.groupId = "-1";
+            })
+
+            this.setState({
+                roleGroups: roleGroups,
+                roles: roles,
+            })
+
+            // Update Database.
+            mainDB.roleGroups.delete(groupId).then(() => {
+
+            })
+
+            mainDB.roles.where("groupId").equals(groupId).modify({ groupId: "-1"}).then(() => {
+
+            }).catch( error => {
+                console.log(error);
+            })
+        }
     }
 
     handleRoleDisplayedNameChange(roleId, newValue) {
@@ -813,15 +897,45 @@ class AppContainer extends React.Component {
     handleCastChange(roleId, castMemberId) {
         let castChangeMap = {...this.state.castChangeMap};
 
-        castChangeMap[roleId] = castMemberId;
+            castChangeMap[roleId] = CastChangeEntryFactory("individual", castMemberId, "-1");
 
-        this.setState({castChangeMap: castChangeMap});
+            this.setState({ castChangeMap: castChangeMap });
+
+            // Add to Database.
+            mainDB.castChangeMap.put(castChangeMap).then(result => {
+
+            })
+    }
+
+    handleGroupCastChange(roleGroupId, castGroupId) {
+        let castMembers = [...this.state.castMembers];
+        let castChangeMap = {...this.state.castChangeMap};
+        let roles = [...this.state.roles];
+
+        let relatedCastMembers = castMembers.filter( item => {
+            return item.groupId === castGroupId;
+        })
+
+        let relatedRoles = roles.filter( item => {
+            return item.groupId === roleGroupId;
+        })
+
+        // Iterate through related Roles and Assign a Cast member from relatedCastMembers if such cast member exists.
+        relatedRoles.map( (item, index) => {
+            let castMember = relatedCastMembers[index];
+            if (castMember !== undefined) {
+                castChangeMap[item.uid] = CastChangeEntryFactory("group", castMember.uid, roleGroupId);
+            }
+        })
+
+        this.setState({ castChangeMap: castChangeMap });
 
         // Add to Database.
-        mainDB.castChangeMap.put(castChangeMap).then( result => {
+        mainDB.castChangeMap.put(castChangeMap).then(result => {
 
         })
     }
+
 
     handleAddHeadshotButtonClick(uid) {
         let options = {

@@ -1,6 +1,6 @@
 import React from 'react';
 import PeopleIcon from '@material-ui/icons/People';
-import MoreVertIcon from '@material-ui/icons/MoreVert';
+import DeleteIcon from '@material-ui/icons/Delete';
 import AddPersonIcon from '@material-ui/icons/PersonAdd';
 import { List, ListItem, ListItemIcon, TextField, ListItemSecondaryAction, IconButton } from '@material-ui/core';
 
@@ -19,8 +19,8 @@ let CastGroup = (props) => {
                     <IconButton onClick={props.onAddCastMemberButtonClick}>
                       <AddPersonIcon/>
                     </IconButton>
-                    <IconButton>
-                        <MoreVertIcon/>
+                    <IconButton onClick={props.onDeleteCastGroupButtonClick}>
+                        <DeleteIcon/>
                     </IconButton>
                 </ListItemSecondaryAction>
             </ListItem>
