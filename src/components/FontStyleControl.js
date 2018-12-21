@@ -1,9 +1,25 @@
 import React from 'react';
-import { Grid, FormControlLabel, TextField, Checkbox, Paper, Popover, IconButton } from '@material-ui/core';
-import '../assets/css/FontStylePicker.css';
-import EditIcon from '@material-ui/icons/Create';
 import ColorPicker from './ColorPicker';
+import '../assets/css/FontStyleControl.css';
+import { Grid, FormControlLabel, TextField, Checkbox, Paper, Popover, IconButton, Typography, Button, SvgIcon } from '@material-ui/core';
 
+
+let PasteContentIcon = (props) => {
+    return (
+        <SvgIcon {...props} viewBox="0 0 24 24" width="24" height="24">
+            <path d="M19 2h-4.18C14.4.84 13.3 0 12 0c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm7 18H5V4h2v3h10V4h2v16z"/>
+        </SvgIcon>
+    )
+}
+
+let CopyContentIcon = (props) => {
+    return (
+        <SvgIcon {...props} viewBox="0 0 24 24" width="24" height="24">
+            <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" />
+        </SvgIcon>
+    )
+    
+}
 
 let FontSizeField = (props) => {
     return (
@@ -33,7 +49,7 @@ let ItalicsCheckbox = (props) => {
     )
 }
 
-class FontStylePicker extends React.Component {
+class FontStyleControl extends React.Component {
     constructor(props) {
         super(props);
 
@@ -41,21 +57,13 @@ class FontStylePicker extends React.Component {
         this.buttonRef = React.createRef();
         this.nativeColorInputRef = React.createRef();
 
-        // State.
-        this.state = {
-            open: false,
-        }
-
         // Method Bindings.
+        this.handleColorChange = this.handleColorChange.bind(this);
         this.handleFontFamilyChange = this.handleFontFamilyChange.bind(this);
         this.handleFontSizeChange = this.handleFontSizeChange.bind(this);
         this.handleBoldChange = this.handleBoldChange.bind(this);
         this.handleItalicsChange = this.handleItalicsChange.bind(this);
-        this.handleColorChange = this.handleColorChange.bind(this);
-        this.openPopover = this.openPopover.bind(this);
-        this.closePopover = this.closePopover.bind(this);
     }
-
 
     render() {
         let fontFamily = this.props.fontStyle !== undefined ? this.props.fontStyle.fontFamily : "Comic Sans MT";
@@ -64,48 +72,47 @@ class FontStylePicker extends React.Component {
         let isItalics =  this.props.fontStyle !== undefined ? this.props.fontStyle.italics : false;
         let color = this.props.fontStyle !== undefined ? this.props.fontStyle.color : "#000000";
 
+        let { fontStyleClipboard, setFontStyleClipboard } = this.context;
+
+        console.log(this.context);
+
         return (
-            <React.Fragment>
-                <IconButton buttonRef={this.buttonRef} hidden={this.state.open} onClick={this.openPopover}>
-                    <EditIcon/>
-                </IconButton>
+                <div className="FontStylePickerGrid">
+                    <div className="FontStylePickerFontFamily">
+                        <FontSelector onBlur={this.handleFontFamilyChange} defaultValue={fontFamily} />
+                    </div>
 
-                <Popover open={this.state.open} anchorEl={this.buttonRef.current} onBackdropClick={this.closePopover}
-                onClose={this.closePopover}>
-                    <Grid item style={{padding: '16px'}}>
-                        <div className="FontStylePickerGrid">
-                            <div className="FontStylePickerFontFamily">
-                                <FontSelector onBlur={this.handleFontFamilyChange} defaultValue={fontFamily} />
-                            </div>
+                    <div className="FontStylePickerFontSize">
+                        <FontSizeField onChange={this.handleFontSizeChange} defaultValue={fontSize} />
+                    </div>
 
-                            <div className="FontStylePickerFontSize">
-                                <FontSizeField onChange={this.handleFontSizeChange} defaultValue={fontSize} />
-                            </div>
+                    <div className="FontStylePickerBold">
+                        <BoldCheckbox onChange={this.handleBoldChange} checked={isBold} />
+                    </div>
 
-                            <div className="FontStylePickerBold">
-                                <BoldCheckbox onChange={this.handleBoldChange} checked={isBold} />
-                            </div>
+                    <div className="FontStylePickerColor">
+                        <ColorPicker defaultValue={color} onChange={this.handleColorChange} />
+                    </div>
 
-                            <div className="FontStylePickerColor">
-                                <ColorPicker defaultValue={color} onChange={this.handleColorChange}/>
-                            </div>
+                    <div className="FontStylePickerItalic">
+                        <ItalicsCheckbox onChange={this.handleItalicsChange} checked={isItalics} />
+                    </div>
 
-                            <div className="FontStylePickerItalic">
-                                <ItalicsCheckbox onChange={this.handleItalicsChange} checked={isItalics} />
-                            </div>
-                        </div>
-                    </Grid>
-                </Popover>
-            </React.Fragment>
+                    <div className="FontStylePickerCopyStyle">
+                        <IconButton onClick={() => { setFontStyleClipboard(this.props.fontStyle)}}>
+                            <CopyContentIcon/>
+                        </IconButton>
+                    </div>
+
+                    <div className="FontStylePickerPasteStyle">
+                        <IconButton onClick={() => { this.props.onChange(fontStyleClipboard)}}>
+                            <PasteContentIcon/>
+                        </IconButton>
+                    </div>
+
+
+                </div>
         )
-    }
-
-    openPopover() {
-        this.setState({ open: true });
-    }
-
-    closePopover() {
-        this.setState( {open: false });
     }
 
     handleColorChange(newValue) {
@@ -153,4 +160,4 @@ class FontStylePicker extends React.Component {
     }
 }
 
-export default FontStylePicker;
+export default FontStyleControl;

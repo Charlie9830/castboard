@@ -47,7 +47,7 @@ class App extends Component {
         open={this.props.roleSelectDialog.open} 
         onChoose={this.props.roleSelectDialog.onChoose}
         onCancel={this.props.roleSelectDialog.onCancel}
-        roles={this.props.roles}/>
+        roles={this.props.roleSelectDialog.roles}/>
 
         <div className="AppBarContainer">
           <AppBar position="relative">
@@ -124,12 +124,16 @@ class App extends Component {
           onOrchestraRoleDeleteButtonClick={this.props.onOrchestraRoleDeleteButtonClick}
           onOrchestraRoleBillingChange={this.props.onOrchestraRoleBillingChange}
           onOrchestraChange={this.props.onOrchestraChange}
-          orchestraChangeMap={this.props.orchestraChangeMap}/>
+          orchestraChangeMap={this.props.orchestraChangeMap}
+          onAddRoleToOrchestraRowButtonClick={this.props.onAddRoleToOrchestraRowButtonClick}
+          onOrchestraRowDeleteButtonClick={this.props.onOrchestraRowDeleteButtonClick}
+          onAddOrchestraRowToSlideButtonClick={this.props.onAddOrchestraRowToSlideButtonClick}/>
         </div>
 
         <div className="SlidePreviewContainer" style={{transform: `scale(${this.state.zoomLevel})`}}>
           <SlideRenderer theme={this.props.theme} slide={this.getCurrentSlide(this.props.slides, this.props.selectedSlideId)}
-          castMembers={this.props.castMembers} castChangeMap={this.props.castChangeMap} />
+          castMembers={this.props.castMembers} castChangeMap={this.props.castChangeMap}
+          orchestraMembers={this.props.orchestraMembers} orchestraChangeMap={this.props.orchestraChangeMap} />
         </div>
         
       </div>

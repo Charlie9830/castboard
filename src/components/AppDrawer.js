@@ -1,5 +1,5 @@
 import React from 'react';
-import FontStylePicker from './FontStylePicker';
+import SingleFontStylePicker from './SingleFontStylePicker';
 import HeadshotFontStylePicker from './HeadshotFontStylePicker';
 import CastGroup from './CastGroup';
 import CastMemberSelect from './CastMemberSelect';
@@ -8,7 +8,7 @@ import CastGroupChooser from './CastGroupChooser';
 
 import { Drawer, AppBar, Toolbar, Typography, Grid, Tabs, Tab, List, Button, ListItem,
      ListItemText, FormControlLabel, TextField, Select, ListItemSecondaryAction, IconButton,
-      Paper, ListItemIcon, Avatar, MenuItem, Checkbox, ListSubheader } from '@material-ui/core';
+      Paper, ListItemIcon, Avatar, MenuItem, Checkbox, ListSubheader, Divider } from '@material-ui/core';
 
 import DeleteIcon from '@material-ui/icons/Delete';
 import PersonIcon from '@material-ui/icons/Person';
@@ -24,6 +24,7 @@ import ZoomOutIcon from '@material-ui/icons/ZoomOut';
 import OpenIcon from '@material-ui/icons/FolderOpen';
 import ArrowUpIcon from '@material-ui/icons/ArrowUpward';
 import ArrowDownIcon from '@material-ui/icons/ArrowDownward';
+import MusicNoteIcon from '@material-ui/icons/MusicNote';
 
 
 import GetCastIdFromMap from '../utilties/GetCastIdFromMap';
@@ -135,8 +136,8 @@ class AppDrawer extends React.Component {
 
         // State.
         this.state = {
-            primaryTab: 0,
-            secondaryTab: 2
+            primaryTab: 3,
+            secondaryTab: 0
         }
 
         // Method Bindings.
@@ -161,6 +162,8 @@ class AppDrawer extends React.Component {
         this.getOrchestraRolesJSX = this.getOrchestraRolesJSX.bind(this);
         this.getOrchestraChangeTabJSX = this.getOrchestraChangeTabJSX.bind(this);
         this.getOrchestraChangeItems = this.getOrchestraChangeItems.bind(this);
+        this.getOrchestraSlidePropertiesJSX = this.getOrchestraSlidePropertiesJSX.bind(this);
+        this.getOrchestraRowsJSX = this.getOrchestraRowsJSX.bind(this);
     }
 
     render() {
@@ -283,7 +286,7 @@ class AppDrawer extends React.Component {
                                 direction="column"
                                 justify="flex-start"
                                 alignItems="flex-start">
-                                <List style={{width: '75%'}}>
+                                <List style={{width: '100%'}}>
                                     <ListItem>
                                         <ListItemText primary="Global Background Image" secondary="Used on all Slides except Title Slides" />
                                         <ListItemSecondaryAction>
@@ -293,8 +296,11 @@ class AppDrawer extends React.Component {
                                         </ListItemSecondaryAction>
                                     </ListItem>
 
+                                    <Divider/>
+                                    <ListSubheader> Cast Theme </ListSubheader>
+
                                     <ListItem>
-                                        <ListItemText primary="Principle Name Style"/>
+                                        <ListItemText primary="Principle Text Style"/>
                                         <ListItemSecondaryAction>
                                             <HeadshotFontStylePicker 
                                             actorFontStyle={this.props.theme.principleActorFontStyle}
@@ -304,7 +310,7 @@ class AppDrawer extends React.Component {
                                     </ListItem>
 
                                     <ListItem>
-                                        <ListItemText primary="Lead Name Style"/>
+                                        <ListItemText primary="Lead Text Style"/>
                                         <ListItemSecondaryAction>
                                             <HeadshotFontStylePicker
                                              actorFontStyle={this.props.theme.leadActorFontStyle}
@@ -314,7 +320,7 @@ class AppDrawer extends React.Component {
                                     </ListItem>
 
                                     <ListItem>
-                                        <ListItemText primary="Ensemble Name Style"/>
+                                        <ListItemText primary="Ensemble Text Style"/>
                                         <ListItemSecondaryAction>
                                             <HeadshotFontStylePicker 
                                             actorFontStyle={this.props.theme.ensembleActorFontStyle}
@@ -337,8 +343,44 @@ class AppDrawer extends React.Component {
                                             <ColorPicker defaultValue={this.props.theme.headshotBorderColor} onChange={this.props.onHeadshotBorderColorChange}/>
                                         </ListItemSecondaryAction>
                                     </ListItem>
+
+                                    <Divider/>
+                                    <ListSubheader> Orchestra Theme </ListSubheader>
+
+                                    <ListItem>
+                                        <ListItemText primary="Conductor Text Style"/>
+                                        <ListItemSecondaryAction>
+                                            <HeadshotFontStylePicker 
+                                            actorFontStyle={this.props.theme.ensembleActorFontStyle}
+                                            roleFontStyle={this.props.theme.ensembleRoleFontStyle}
+                                            onChange={this.props.onEnsembleFontStyleChange}/>
+                                        </ListItemSecondaryAction>
+                                    </ListItem>
+
+                                    <ListItem>
+                                        <ListItemText primary="Associate/Assistant Name Style"/>
+                                        <ListItemSecondaryAction>
+                                            <HeadshotFontStylePicker 
+                                            actorFontStyle={this.props.theme.ensembleActorFontStyle}
+                                            roleFontStyle={this.props.theme.ensembleRoleFontStyle}
+                                            onChange={this.props.onEnsembleFontStyleChange}/>
+                                        </ListItemSecondaryAction>
+                                    </ListItem>
+
+                                    <ListItem>
+                                        <ListItemText primary="Musician Name Style"/>
+                                        <ListItemSecondaryAction>
+                                            <HeadshotFontStylePicker 
+                                            actorFontStyle={this.props.theme.ensembleActorFontStyle}
+                                            roleFontStyle={this.props.theme.ensembleRoleFontStyle}
+                                            onChange={this.props.onEnsembleFontStyleChange}/>
+                                        </ListItemSecondaryAction>
+                                    </ListItem>
+
                                 </List>
                                 
+                                
+
                             </Grid>
                         </Paper>
 
@@ -359,6 +401,7 @@ class AppDrawer extends React.Component {
                 return this.getCastSlidePropertiesJSX();
             
             case "orchestra":
+                return this.getOrchestraSlidePropertiesJSX();
                 return
             
             case "info":
@@ -412,6 +455,53 @@ class AppDrawer extends React.Component {
             return jsx;
         }
     }
+
+    getOrchestraRowsJSX(selectedSlide) {
+        if (selectedSlide !== undefined) {
+            let jsx = selectedSlide.orchestraRows.map( (item, index) => {
+
+                let rolesJSX = item.roles.map( role => {
+                    return (
+                        <ListItem style={{marginLeft: '32px'}} key={role.uid}>
+                            <ListItemIcon>
+                                <ScriptIcon/>
+                            </ListItemIcon>
+                            <ListItemText inset primary={role.name}/>
+                            <ListItemSecondaryAction>
+                                <IconButton onClick={() => {this.props.onOrchestraRowRoleShiftUpButtonClick(selectedSlide.uid, item.uid, role.uid)}}>
+                                    <ArrowUpIcon/>
+                                </IconButton>
+                                <IconButton onClick={() => {this.props.onOrchestraRowRoleShiftDownButtonClick(selectedSlide.uid, item.uid, role.uid)}}>
+                                    <ArrowDownIcon/>
+                                </IconButton>
+                                <IconButton 
+                                onClick={() => {this.props.onOrchestraRowRoleDeleteButtonClick(selectedSlide.uid, item.uid, role.uid)}}>
+                                    <DeleteIcon/>
+                                </IconButton>
+                            </ListItemSecondaryAction>
+                        </ListItem>
+                    )
+                })
+
+                return (
+                    <React.Fragment key={index}>
+                        <ListItem key={item.uid} divider={true}>
+                            <ListItemText primary={`Row ${item.rowNumber + 1}`}/>
+                            <ListItemSecondaryAction>
+                                <Button variant="outlined" onClick={() => { this.props.onAddRoleToOrchestraRowButtonClick(selectedSlide.uid, item.uid) }}> Add Role </Button>
+                                <IconButton onClick={() => {this.props.onOrchestraRowDeleteButtonClick(selectedSlide.uid, item.uid)}}>
+                                    <DeleteIcon/>
+                                </IconButton>
+                            </ListItemSecondaryAction>
+                        </ListItem>
+                        {rolesJSX}
+                    </React.Fragment>
+                )
+            })
+
+            return jsx;
+        }
+    }
     
     getInformationSlidePropertiesJSX() {
         let selectedSlide = this.getSelectedSlide();
@@ -430,7 +520,7 @@ class AppDrawer extends React.Component {
                             alignItems="center">
                             <TextField style={{ width: '75%' }} multiline defaultValue={informationText}
                                 onChange={(e) => { this.props.onInformationTextChange(selectedSlide.uid, e.target.value) }} />
-                            <FontStylePicker fontStyle={selectedSlide.informationTextFontStyle}
+                            <SingleFontStylePicker fontStyle={selectedSlide.informationTextFontStyle}
                                 onChange={(fontStyle) => { this.props.onInformationTextFontStyleChange(selectedSlide.uid, fontStyle) }} />
                         </Grid>
                     </ListItemSecondaryAction>
@@ -473,6 +563,31 @@ class AppDrawer extends React.Component {
                             onClick={() => { this.props.onAddRowToSlideButtonClick(this.props.selectedSlideId) }}> Add Row </Button>
                         <List style={{ width: '90%' }}>
                             {this.getCastRowsJSX(this.getSelectedSlide())}
+                        </List>
+                    </Paper>
+                    
+                </List>
+
+            </Grid>
+        )
+    }
+
+    getOrchestraSlidePropertiesJSX() {
+        let selectedSlide = this.getSelectedSlide();
+
+        return (
+            <Grid container
+            direction="column"
+            justify="flex-start"
+            alignItems="flex-start">
+                
+                <List style={{width: '90%'}}>
+                    <Paper style={{padding: '8px', marginTop: '24px'}}>
+                        <Typography variant="subheading"> Orchestra Member Rows </Typography>
+                        <Button variant="contained" style={{marginTop: '8px'}}
+                            onClick={() => { this.props.onAddOrchestraRowToSlideButtonClick(this.props.selectedSlideId) }}> Add Row </Button>
+                        <List style={{ width: '90%' }}>
+                            {this.getOrchestraRowsJSX(this.getSelectedSlide())}
                         </List>
                     </Paper>
                     
@@ -629,11 +744,10 @@ class AppDrawer extends React.Component {
 
     getOrchestraRolesJSX() {
         let jsx = this.props.orchestraRoles.map( item => {
-            console.log(item);
             return (
                 <ListItem key={item.uid}>
                     <ListItemIcon>
-                        <PersonIcon/>
+                        <MusicNoteIcon/>
                     </ListItemIcon>
                     <TextField defaultValue={item.name} 
                     onChange={(e) => {this.props.onOrchestraRoleNameChange(item.uid, e.target.value)}}/>

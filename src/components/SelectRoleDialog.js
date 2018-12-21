@@ -12,7 +12,9 @@ class SelectRoleDialog extends React.Component {
     }
 
     render() {
-        let rolesJSX = this.props.roles.map(item => {
+        let roles = this.props.roles || [];
+
+        let rolesJSX = roles.map(item => {
             return ( <FormControlLabel key={item.uid} label={item.name} value={item.uid} control={<Radio/>}/> )
         })
 

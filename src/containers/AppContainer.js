@@ -20,6 +20,7 @@ import RoleGroupFactory from '../factories/RoleGroupFactory';
 import CastChangeEntryFactory from '../factories/CastChangeEntryFactory';
 import OrchestraMemberFactory from '../factories/OrchestraMemberFactory';
 import OrchestraRoleFactory from '../factories/OrchestraRoleFactory';
+import OrchestraRowFactory from '../factories/OrchestraRowFactory';
 
 const mainDB = new Dexie('castboardMainDB');
 mainDB.version(1).stores({
@@ -56,6 +57,15 @@ const muiTheme = createMuiTheme({
     }
 })
 
+let AppContext;
+
+let setFontStyleClipboard = (_this, fontStyle) => {
+    let appContext = {..._this.state.appContext};
+    appContext.fontStyleClipboard = fontStyle;
+
+    _this.setState({appContext: appContext});
+}
+
 class AppContainer extends React.Component {
     constructor(props) {
         super(props);
@@ -76,10 +86,18 @@ class AppContainer extends React.Component {
             theme: ThemeFactory(),
             roleSelectDialog: {
                 open: false,
+                roles: [],
                 onChoose: null,
                 onCancel: null,
-            }
+            },
+            appContext: {
+                 fontStyleClipboard: null,
+                 setFontStyleClipboard: (fontStyle) => { setFontStyleClipboard(this, fontStyle) }
+                }
         }
+
+        // Context
+        AppContext = React.createContext(this.state.appContext);
 
         // Method Bindings.
         this.handleNextSlideButtonClick = this.handleNextSlideButtonClick.bind(this);
@@ -134,6 +152,9 @@ class AppContainer extends React.Component {
         this.handleOrchestraRoleBillingChange = this.handleOrchestraRoleBillingChange.bind(this);
         this.handleAddOrchestraRoleButtonClick = this.handleAddOrchestraRoleButtonClick.bind(this);
         this.handleOrchestraChange = this.handleOrchestraChange.bind(this);
+        this.handleAddRoleToOrchestraRowButtonClick = this.handleAddRoleToOrchestraRowButtonClick.bind(this);
+        this.handleOrchestraRowDeleteButtonClick = this.handleOrchestraRowDeleteButtonClick.bind(this);
+        this.handleAddOrchestraRowToSlideButtonClick = this.handleAddOrchestraRowToSlideButtonClick.bind(this);
     
     }
 
@@ -247,73 +268,152 @@ class AppContainer extends React.Component {
     render() {
         return (
             <MuiThemeProvider theme={muiTheme}>
-                <App currentSlide={this.state.currentSlide}
-                    onNextSlideButtonClick={this.handleNextSlideButtonClick}
-                    onPrevSlideButtonClick={this.handlePrevSlideButtonClick}
-                    onAddCastMemberButtonClick={this.handleAddCastMemberButtonClick}
-                    castMembers={this.state.castMembers}
-                    onCastMemberNameChange={this.handleCastMemberNameChange}
-                    onCastMemberBillingChange={this.handleCastMemberBillingChange}
-                    onCastMemberDeleteButtonClick={this.handleCastMemberDeleteButtonClick}
-                    onAddRoleButtonClick={this.handleAddRoleButtonClick}
-                    roles={this.state.roles}
-                    onDeleteRoleButtonClick={this.handleDeleteRoleButtonClick}
-                    onRoleNameChange={this.handleRoleNameChange}
-                    onAddHeadshotButtonClick={this.handleAddHeadshotButtonClick}
-                    onCastChange={this.handleCastChange}
-                    castChangeMap={this.state.castChangeMap}
-                    onAddSlideButtonClick={this.handleAddSlideButtonClick}
-                    slides={this.state.slides}
-                    onSlideNameChange={this.handleSlideNameChange}
-                    onSlideTypeChange={this.handleSlideTypeChange}
-                    onDeleteSlideButtonClick={this.handleDeleteSlideButtonClick}
-                    onSlideSelect={this.handleSlideSelect}
-                    selectedSlideId={this.state.selectedSlideId}
-                    onChooseTitleSlideImageButtonClick={this.handleChooseTitleSlideImageButtonClick}
-                    onChooseBackgroundImageButtonClick={this.handleChooseBackgroundImageButtonClick}
-                    theme={this.state.theme}
-                    onInformationTextChange={this.handleInformationTextChange}
-                    onInformationTextFontStyleChange={this.handleInformationTextFontStyleChange}
-                    onBaseFontStyleChange={this.handleBaseFontStyleChange}
-                    onAddRowToSlideButtonClick={this.handleAddRowToSlideButtonClick}
-                    onAddRoleToCastRowButtonClick={this.handleAddRoleToCastRowButtonClick}
-                    roleSelectDialog={this.state.roleSelectDialog}
-                    onSlideTitleChange={this.handleSlideTitleChange}
-                    onSlideTitleFontStyleChange={this.handleSlideTitleFontStyleChange}
-                    onCastRowRoleDeleteButtonClick={this.handleCastRowRoleDeleteButtonClick}
-                    onCastRowDeleteButtonClick={this.handleCastRowDeleteButtonClick}
-                    onCastRowRoleShiftUpButtonClick={this.handleCastRowRoleShiftUpButtonClick}
-                    onCastRowRoleShiftDownButtonClick={this.handleCastRowRoleShiftDownButtonClick}
-                    onPrincipleFontStyleChange={this.handlePrincipleFontStyleChange}
-                    onLeadFontStyleChange={this.handleLeadFontStyleChange}
-                    onEnsembleFontStyleChange={this.handleEnsembleFontStyleChange}
-                    onHeadshotBorderStrokeWidthChange={this.handleHeadshotBorderStrokeWidthChange}
-                    onHeadshotBorderColorChange={this.handleHeadshotBorderColorChange}
-                    onAddCastGroupButtonClick={this.handleAddCastGroupButtonClick} 
-                    castGroups={this.state.castGroups}
-                    onAddCastMemberToGroupButtonClick={this.handleAddCastMemberToGroupButtonClick}
-                    onCastGroupNameChange={this.handleCastGroupNameChange}
-                    onAddRoleGroupButtonClick={this.handleAddRoleGroupButtonClick}
-                    roleGroups={this.state.roleGroups}
-                    onAddRoleToGroupButtonClick={this.handleAddRoleToGroupButtonClick}
-                    onRoleGroupNameChange={this.handleRoleGroupNameChange}
-                    onRoleDisplayedNameChange={this.handleRoleDisplayedNameChange}
-                    onRoleGroupDeleteButtonClick={this.handleRoleGroupDeleteButtonClick}
-                    onCastGroupDeleteButtonClick={this.handleCastGroupDeleteButtonClick}
-                    onGroupCastChange={this.handleGroupCastChange}
-                    onAddOrchestraMemberButtonClick={this.handleAddOrchestraMemberButtonClick}
-                    orchestraMembers={this.state.orchestraMembers}
-                    onOrchestraMemberNameChange={this.handleOrchestraMemberNameChange}
-                    onOrchestraMemberDeleteButtonClick={this.handleOrchestraMemberDeleteButtonClick}
-                    orchestraRoles={this.state.orchestraRoles}
-                    onAddOrchestraRoleButtonClick={this.handleAddOrchestraRoleButtonClick}
-                    onOrchestraRoleNameChange={this.handleOrchestraRoleNameChange}
-                    onOrchestraRoleDeleteButtonClick={this.handleOrchestraRoleDeleteButtonClick}
-                    onOrchestraRoleBillingChange={this.handleOrchestraRoleBillingChange}
-                    onOrchestraChange={this.handleOrchestraChange}
-                    orchestraChangeMap={this.state.orchestraChangeMap}/>
+                <AppContext.Provider value={this.state.appContext}>
+
+                    <App currentSlide={this.state.currentSlide}
+                        onNextSlideButtonClick={this.handleNextSlideButtonClick}
+                        onPrevSlideButtonClick={this.handlePrevSlideButtonClick}
+                        onAddCastMemberButtonClick={this.handleAddCastMemberButtonClick}
+                        castMembers={this.state.castMembers}
+                        onCastMemberNameChange={this.handleCastMemberNameChange}
+                        onCastMemberBillingChange={this.handleCastMemberBillingChange}
+                        onCastMemberDeleteButtonClick={this.handleCastMemberDeleteButtonClick}
+                        onAddRoleButtonClick={this.handleAddRoleButtonClick}
+                        roles={this.state.roles}
+                        onDeleteRoleButtonClick={this.handleDeleteRoleButtonClick}
+                        onRoleNameChange={this.handleRoleNameChange}
+                        onAddHeadshotButtonClick={this.handleAddHeadshotButtonClick}
+                        onCastChange={this.handleCastChange}
+                        castChangeMap={this.state.castChangeMap}
+                        onAddSlideButtonClick={this.handleAddSlideButtonClick}
+                        slides={this.state.slides}
+                        onSlideNameChange={this.handleSlideNameChange}
+                        onSlideTypeChange={this.handleSlideTypeChange}
+                        onDeleteSlideButtonClick={this.handleDeleteSlideButtonClick}
+                        onSlideSelect={this.handleSlideSelect}
+                        selectedSlideId={this.state.selectedSlideId}
+                        onChooseTitleSlideImageButtonClick={this.handleChooseTitleSlideImageButtonClick}
+                        onChooseBackgroundImageButtonClick={this.handleChooseBackgroundImageButtonClick}
+                        theme={this.state.theme}
+                        onInformationTextChange={this.handleInformationTextChange}
+                        onInformationTextFontStyleChange={this.handleInformationTextFontStyleChange}
+                        onBaseFontStyleChange={this.handleBaseFontStyleChange}
+                        onAddRowToSlideButtonClick={this.handleAddRowToSlideButtonClick}
+                        onAddRoleToCastRowButtonClick={this.handleAddRoleToCastRowButtonClick}
+                        roleSelectDialog={this.state.roleSelectDialog}
+                        onSlideTitleChange={this.handleSlideTitleChange}
+                        onSlideTitleFontStyleChange={this.handleSlideTitleFontStyleChange}
+                        onCastRowRoleDeleteButtonClick={this.handleCastRowRoleDeleteButtonClick}
+                        onCastRowDeleteButtonClick={this.handleCastRowDeleteButtonClick}
+                        onCastRowRoleShiftUpButtonClick={this.handleCastRowRoleShiftUpButtonClick}
+                        onCastRowRoleShiftDownButtonClick={this.handleCastRowRoleShiftDownButtonClick}
+                        onPrincipleFontStyleChange={this.handlePrincipleFontStyleChange}
+                        onLeadFontStyleChange={this.handleLeadFontStyleChange}
+                        onEnsembleFontStyleChange={this.handleEnsembleFontStyleChange}
+                        onHeadshotBorderStrokeWidthChange={this.handleHeadshotBorderStrokeWidthChange}
+                        onHeadshotBorderColorChange={this.handleHeadshotBorderColorChange}
+                        onAddCastGroupButtonClick={this.handleAddCastGroupButtonClick}
+                        castGroups={this.state.castGroups}
+                        onAddCastMemberToGroupButtonClick={this.handleAddCastMemberToGroupButtonClick}
+                        onCastGroupNameChange={this.handleCastGroupNameChange}
+                        onAddRoleGroupButtonClick={this.handleAddRoleGroupButtonClick}
+                        roleGroups={this.state.roleGroups}
+                        onAddRoleToGroupButtonClick={this.handleAddRoleToGroupButtonClick}
+                        onRoleGroupNameChange={this.handleRoleGroupNameChange}
+                        onRoleDisplayedNameChange={this.handleRoleDisplayedNameChange}
+                        onRoleGroupDeleteButtonClick={this.handleRoleGroupDeleteButtonClick}
+                        onCastGroupDeleteButtonClick={this.handleCastGroupDeleteButtonClick}
+                        onGroupCastChange={this.handleGroupCastChange}
+                        onAddOrchestraMemberButtonClick={this.handleAddOrchestraMemberButtonClick}
+                        orchestraMembers={this.state.orchestraMembers}
+                        onOrchestraMemberNameChange={this.handleOrchestraMemberNameChange}
+                        onOrchestraMemberDeleteButtonClick={this.handleOrchestraMemberDeleteButtonClick}
+                        orchestraRoles={this.state.orchestraRoles}
+                        onAddOrchestraRoleButtonClick={this.handleAddOrchestraRoleButtonClick}
+                        onOrchestraRoleNameChange={this.handleOrchestraRoleNameChange}
+                        onOrchestraRoleDeleteButtonClick={this.handleOrchestraRoleDeleteButtonClick}
+                        onOrchestraRoleBillingChange={this.handleOrchestraRoleBillingChange}
+                        onOrchestraChange={this.handleOrchestraChange}
+                        orchestraChangeMap={this.state.orchestraChangeMap}
+                        onAddRoleToOrchestraRowButtonClick={this.handleAddRoleToOrchestraRowButtonClick}
+                        onOrchestraRowDeleteButtonClick={this.handleOrchestraRowDeleteButtonClick}
+                        onAddOrchestraRowToSlideButtonClick={this.handleAddOrchestraRowToSlideButtonClick} />
+                </AppContext.Provider>
             </MuiThemeProvider>
         )
+    }
+
+    handleAddOrchestraRowToSlideButtonClick(uid) {
+        let slides = [...this.state.slides];
+        let slide = slides.find(item => {
+            return item.uid === uid;
+        })
+
+        let newOrchestraRow = OrchestraRowFactory(slide.orchestraRows.length + 1);
+
+        slide.orchestraRows.push(newOrchestraRow);
+
+        this.setState({ slides: slides });
+
+        // Update Database
+        mainDB.slides.update(uid, { orchestraRows: slide.orchestraRows }).then( () => {
+
+        })
+    }
+
+    handleOrchestraRowDeleteButtonClick(slideId, rowId) {
+        let slides = [...this.state.slides];
+        let slide = slides.find(item => {
+            return item.uid === slideId;
+        })
+
+        let orchestraRowIndex = slide.orchestraRows.findIndex(item => {
+            return item.uid === rowId;
+        })
+
+        if (orchestraRowIndex !== -1) {
+            slide.orchestraRows.splice(orchestraRowIndex, 1);
+
+            this.setState({slides: slides});
+
+            // Update Database.
+            mainDB.slides.update(slideId, { orchestraRows: slide.castRows }).then( () => {
+
+            });
+        }
+    }
+
+    handleAddRoleToOrchestraRowButtonClick(slideId, rowId) {
+        let slides = [...this.state.slides];
+        let currentSlide = slides.find(item => {
+            return item.uid === slideId;
+        })
+
+        let orchestraRow = currentSlide.orchestraRows.find( item => {
+            return item.uid === rowId;
+        })
+
+        let onChoose = (roleId) => {
+            this.setState({roleSelectDialog: { open: false, onChoose: null, onCancel: null }});
+
+            let role = this.getRole(this.state.orchestraRoles, roleId);
+            orchestraRow.roles.push(role);
+
+            this.setState({slides: slides});
+
+            // Update Database
+            mainDB.slides.update(slideId, { orchestraRows: currentSlide.orchestraRows }).then(() => {
+
+            })
+            
+        }
+
+        let onCancel = () => {
+            this.setState({roleSelectDialog: { open: false, onChoose: null, onCancel: null }});
+        }
+
+        // Trigger Role Select Dialog.
+        this.setState({roleSelectDialog: { open: true, roles: this.state.orchestraRoles, onChoose: onChoose, onCancel: onCancel}});
     }
 
     handleOrchestraChange(orchestraRoleId, orchestraMemberId) {
@@ -783,8 +883,6 @@ class AppContainer extends React.Component {
 
             });
         }
-
-
     }
 
     handleCastRowRoleDeleteButtonClick(slideId, castRowId, roleId) {
@@ -876,7 +974,7 @@ class AppContainer extends React.Component {
         }
 
         // Trigger Role Select Dialog.
-        this.setState({roleSelectDialog: { open: true, onChoose: onChoose, onCancel: onCancel}});
+        this.setState({roleSelectDialog: { open: true, roles: this.state.roles, onChoose: onChoose, onCancel: onCancel}});
         
     }
 
