@@ -43,6 +43,7 @@
     "dexie": "^2.0.4",
     "fs-jetpack": "^2.2.0",
     "material-ui-color-picker": "^3.0.0",
+    "react-hover-observer": "^2.1.1",
     "uuid": "^3.3.2"
   }
 }

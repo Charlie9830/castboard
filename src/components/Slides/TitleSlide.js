@@ -5,7 +5,7 @@ let TitleSlide = (props) => {
     let imgStyle = {
         width: '100%',
         height: '100%',
-        objectFit: 'contain',
+        objectFit: 'cover',
     }
 
     return (

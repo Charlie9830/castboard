@@ -2,26 +2,10 @@ import React, { Component } from 'react';
 import AppDrawer from './AppDrawer';
 import SlideRenderer from './SlideRenderer';
 import SelectRoleDialog from './SelectRoleDialog';
+import FontStyleClipboardSnackbar from './FontStyleClipboardSnackbar';
 import '../assets/css/App.css';
-import BackgroundImageSrc from '../assets/media/Background.jpg';
 
-import TinaArena from '../assets/media/TinaArena.jpg';
-import PauloSzot from '../assets/media/PauloSzot.jpeg';
-import KurtKansley from '../assets/media/KurtKansley.jpeg';
-import MichaelFalzon from '../assets/media/MichaelFalzon.jpeg';
-import AlexisVanMaanen from '../assets/media/AlexisVanMaanen.jpeg';
-import OliviaCarniato from '../assets/media/OliviaCarniato.jpeg';
-import AlieCoste from '../assets/media/AlieCoste.jpeg';
-import SamanthaDodemaide from '../assets/media/SamanthaDodemaide.jpeg';
-import LauraField from '../assets/media/LauraField.jpeg';
-import AshleighGurnett from '../assets/media/AshleighGurnett.jpeg';
-import KateMareeHoolihan from '../assets/media/KateMareeHoolihan.jpeg';
-import GeorginaHopson from '../assets/media/GeorginaHopson.jpeg';
-import RachelWard from '../assets/media/RachelWard.jpeg';
-import KathleenMoore from '../assets/media/KathleenMoore.jpeg';
-
-import { CssBaseline, AppBar, Toolbar, Typography } from '@material-ui/core';
-import { purple } from '@material-ui/core/colors';
+import { CssBaseline, AppBar, Toolbar, Typography, Button, Grid } from '@material-ui/core';
 
 class App extends Component {
   constructor(props) {
@@ -29,19 +13,34 @@ class App extends Component {
 
     // State.
     this.state = {
-      zoomLevel: 1,
+      zoomLevel: 0.80,
     }
 
     // Method Bindings.
     this.handleZoomInButtonClick = this.handleZoomInButtonClick.bind(this);
     this.handleZoomOutButtonClick = this.handleZoomOutButtonClick.bind(this);
+    this.getPresentationModeLayout = this.getPresentationModeLayout.bind(this);
   }
 
+  componentDidMount() {
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "F5") {
+        this.props.onTogglePresentationMode();
+      }
+    })
+  }
 
   render() {
+    if (this.props.isInPresentationMode) {
+      return this.getPresentationModeLayout();
+    }
+    
     return (
       <div className="App">
         <CssBaseline/>
+
+        <FontStyleClipboardSnackbar open={this.props.isFontStyleClipboardSnackbarOpen}
+         onClose={this.props.onFontStyleClipboardSnackbarClose}/>
 
         <SelectRoleDialog 
         open={this.props.roleSelectDialog.open} 
@@ -53,6 +52,13 @@ class App extends Component {
           <AppBar position="relative">
             <Toolbar>
               <Typography variant="h6"> Castboard </Typography>
+              <Grid container
+              direction="row-reverse"
+              justify="flex-start">
+                <Button onClick={this.props.onSaveButtonClick}> Save </Button>
+                <Button onClick={this.props.onOpenButtonClick}> Open </Button>
+              </Grid>
+              
             </Toolbar>
           </AppBar>
         </div>
@@ -127,17 +133,33 @@ class App extends Component {
           orchestraChangeMap={this.props.orchestraChangeMap}
           onAddRoleToOrchestraRowButtonClick={this.props.onAddRoleToOrchestraRowButtonClick}
           onOrchestraRowDeleteButtonClick={this.props.onOrchestraRowDeleteButtonClick}
-          onAddOrchestraRowToSlideButtonClick={this.props.onAddOrchestraRowToSlideButtonClick}/>
+          onAddOrchestraRowToSlideButtonClick={this.props.onAddOrchestraRowToSlideButtonClick}
+          onConductorFontStyleChange={this.props.onConductorFontStyleChange}
+          onAssociateFontStyleChange={this.props.onAssociateFontStyleChange}
+          onMusicianFontStyleChange={this.props.onMusicianFontStyleChange}
+          onReorderSlideButtonClick={this.props.onReorderSlideButtonClick}
+          onHoldTimeChange={this.props.onHoldTimeChange}/>
         </div>
 
-        <div className="SlidePreviewContainer" style={{transform: `scale(${this.state.zoomLevel})`}}>
+        <div className="SlidePreviewContainer" style={{transform: `scale(${this.state.zoomLevel})`, transformOrigin: 'left top'}}>
+
+          {/* Any Changes to Props for SlideRenderer should be Reflected in the other Instnce of SlideRenderer.  */} 
           <SlideRenderer theme={this.props.theme} slide={this.getCurrentSlide(this.props.slides, this.props.selectedSlideId)}
           castMembers={this.props.castMembers} castChangeMap={this.props.castChangeMap}
           orchestraMembers={this.props.orchestraMembers} orchestraChangeMap={this.props.orchestraChangeMap} />
         </div>
-        
       </div>
     );
+  }
+
+  getPresentationModeLayout() {
+    return (
+      <div className="AppPresentationMode">
+        <SlideRenderer theme={this.props.theme} slide={this.getCurrentSlide(this.props.slides, this.props.selectedSlideId)}
+          castMembers={this.props.castMembers} castChangeMap={this.props.castChangeMap}
+          orchestraMembers={this.props.orchestraMembers} orchestraChangeMap={this.props.orchestraChangeMap} />
+      </div>
+    )
   }
 
   handleZoomInButtonClick() {

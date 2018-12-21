@@ -10,8 +10,8 @@ let CastMember = (props) => {
         flexDirection: 'column',
         justifyItems: 'flex-start',
         alignItems: 'center',
-        marginLeft: '24px',
-        marginRight: '24px',
+        marginLeft: getContainerMargin(props.billing),
+        marginRight: getContainerMargin(props.billing),
         minWidth: '200px',
     }
 
@@ -96,6 +96,22 @@ let getNameMarginTop = (billing) => {
 
         default:
         return '8px';
+    }
+}
+
+let getContainerMargin = (billing) => {
+    switch(billing) {
+        case "principle":
+            return '32px';
+
+        case "lead":
+            return '32px';
+
+        case "ensemble":
+            return '24px';
+
+        default:
+            return '32px';
     }
 }
 

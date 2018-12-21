@@ -5,6 +5,13 @@ body {
   margin: 0px;
 }
 
+.AppPresentationMode {
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  cursor: none;
+}
+
 .App {
   display: grid;
   height: 100vh;
@@ -27,6 +34,8 @@ body {
 
 .SlidePreviewContainer {
   grid-area: SlidePreviewArea;
+  width: 1920px;
+  height: 1080px;
   display: flex;
   flex-direction: column;
   justify-content: center;

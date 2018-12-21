@@ -22,6 +22,7 @@ let OrchestraSlide = (props) => {
         justifyItems: 'center',
         alignItems: 'center',
         height: '100%',
+        width: '100%',
     }
 
     return (
@@ -29,7 +30,7 @@ let OrchestraSlide = (props) => {
             <div style={containerStyle}>
 
                 <div style={childrenContainerStyle}>
-                    {getSlideContentsJSX(props.slide, props.orchestraMembers, props.orchestraChangeMap)}
+                    {getSlideContentsJSX(props.slide, props.orchestraMembers, props.orchestraChangeMap, props.theme)}
                 </div>
 
             </div>
@@ -37,14 +38,15 @@ let OrchestraSlide = (props) => {
     )
 }
 
-let getSlideContentsJSX = (slide, orchestraMembers, orchestraChangeMap) => {
+let getSlideContentsJSX = (slide, orchestraMembers, orchestraChangeMap, theme) => {
     let jsx = slide.orchestraRows.map( item => {
         let membersJSX = item.roles.map( role => {
             let orchestraMember = getOrchestraMember(role.uid, orchestraMembers, orchestraChangeMap)
 
             if (orchestraMember !== undefined) {
                 return (
-                    <OrchestraMember key={role.uid} name={orchestraMember.name} seat={role.name}/>
+                    <OrchestraMember key={role.uid} name={orchestraMember.name} billing={role.billing}
+                     seat={role.name} theme={theme}/>
                 )
             }
             

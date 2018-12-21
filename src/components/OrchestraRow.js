@@ -7,7 +7,7 @@ let OrchestraRow = (props) => {
         width: '100%',
         display: 'flex',
         flexDirection: 'row',
-        justifyContent: 'center',
+        justifyContent: 'space-evenly',
         alignItems: 'center',
         height: 'fit-content',
     }

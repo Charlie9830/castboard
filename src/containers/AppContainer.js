@@ -4,7 +4,9 @@ import Dexie from 'dexie';
 import jetpack from 'fs-jetpack';
 import TryShiftItemForward from '../utilties/TryShiftItemForward';
 import TryShiftItemBackward from '../utilties/TryShiftItemBackward';
-const { dialog } = require('electron').remote;
+import { AppContext, AppContextDefaultValue } from '../contexts/AppContext';
+const { remote } = require('electron');
+const { dialog } = remote;
 
 import { MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles';
 import PrimaryColor from '@material-ui/core/colors/blue';
@@ -30,7 +32,7 @@ mainDB.version(1).stores({
     roleGroups: 'uid',
     castChangeMap: 'uid',
     orchestraChangeMap: 'uid',
-    slides: 'uid',
+    slides: 'uid, number',
     theme: 'uid',
     orchestraMembers: 'uid',
     orchestraRoles: 'uid',
@@ -57,14 +59,6 @@ const muiTheme = createMuiTheme({
     }
 })
 
-let AppContext;
-
-let setFontStyleClipboard = (_this, fontStyle) => {
-    let appContext = {..._this.state.appContext};
-    appContext.fontStyleClipboard = fontStyle;
-
-    _this.setState({appContext: appContext});
-}
 
 class AppContainer extends React.Component {
     constructor(props) {
@@ -90,14 +84,13 @@ class AppContainer extends React.Component {
                 onChoose: null,
                 onCancel: null,
             },
-            appContext: {
-                 fontStyleClipboard: null,
-                 setFontStyleClipboard: (fontStyle) => { setFontStyleClipboard(this, fontStyle) }
-                }
+            isFontStyleClipboardSnackbarOpen: false,
+            appContext: {...AppContextDefaultValue, setFontStyleClipboard: (newValue) => {this.handleSetFontStyleClipboard(newValue)} },
+            isInPresentationMode: false,
         }
 
-        // Context
-        AppContext = React.createContext(this.state.appContext);
+        this.presentationInterval = null;
+        this.powerSaveBlockerId = -1;
 
         // Method Bindings.
         this.handleNextSlideButtonClick = this.handleNextSlideButtonClick.bind(this);
@@ -155,7 +148,17 @@ class AppContainer extends React.Component {
         this.handleAddRoleToOrchestraRowButtonClick = this.handleAddRoleToOrchestraRowButtonClick.bind(this);
         this.handleOrchestraRowDeleteButtonClick = this.handleOrchestraRowDeleteButtonClick.bind(this);
         this.handleAddOrchestraRowToSlideButtonClick = this.handleAddOrchestraRowToSlideButtonClick.bind(this);
-    
+        this.handleSetFontStyleClipboard = this.handleSetFontStyleClipboard.bind(this);
+        this.handleFontStyleClipboardSnackbarClose = this.handleFontStyleClipboardSnackbarClose.bind(this);
+        this.handleConductorFontStyleChange = this.handleConductorFontStyleChange.bind(this);
+        this.handleAssociateFontStyleChange = this.handleAssociateFontStyleChange.bind(this);
+        this.handleMusicianFontStyleChange = this.handleMusicianFontStyleChange.bind(this);
+        this.handleSaveButtonClick = this.handleSaveButtonClick.bind(this);
+        this.unpackageState = this.unpackageState.bind(this);
+        this.handleOpenButtonClick = this.handleOpenButtonClick.bind(this);
+        this.handleReorderSlideButtonClick = this.handleReorderSlideButtonClick.bind(this);
+        this.handleHoldTimeChange = this.handleHoldTimeChange.bind(this);
+        this.handleTogglePresentationMode = this.handleTogglePresentationMode.bind(this);
     }
 
     componentDidMount() {
@@ -198,8 +201,9 @@ class AppContainer extends React.Component {
         })
 
         // Pull Down Slides
-        mainDB.slides.toArray( (result) => {
+        mainDB.slides.orderBy("number").toArray( (result) => {
             if (result.length > 0) {
+
                 let slides = [];
                 result.forEach( item => {
                     slides.push( item );
@@ -337,10 +341,322 @@ class AppContainer extends React.Component {
                         orchestraChangeMap={this.state.orchestraChangeMap}
                         onAddRoleToOrchestraRowButtonClick={this.handleAddRoleToOrchestraRowButtonClick}
                         onOrchestraRowDeleteButtonClick={this.handleOrchestraRowDeleteButtonClick}
-                        onAddOrchestraRowToSlideButtonClick={this.handleAddOrchestraRowToSlideButtonClick} />
+                        onAddOrchestraRowToSlideButtonClick={this.handleAddOrchestraRowToSlideButtonClick}
+                        onFontStyleClipboardSnackbarClose={this.handleFontStyleClipboardSnackbarClose}
+                        isFontStyleClipboardSnackbarOpen={this.state.isFontStyleClipboardSnackbarOpen}
+                        onConductorFontStyleChange={this.handleConductorFontStyleChange}
+                        onAssociateFontStyleChange={this.handleAssociateFontStyleChange}
+                        onMusicianFontStyleChange={this.handleMusicianFontStyleChange}
+                        onSaveButtonClick={this.handleSaveButtonClick}
+                        onOpenButtonClick={this.handleOpenButtonClick}
+                        onReorderSlideButtonClick={this.handleReorderSlideButtonClick} 
+                        onHoldTimeChange={this.handleHoldTimeChange}
+                        onTogglePresentationMode={this.handleTogglePresentationMode}
+                        isInPresentationMode={this.state.isInPresentationMode}/>
                 </AppContext.Provider>
             </MuiThemeProvider>
         )
+    }
+
+    handleTogglePresentationMode() {
+        if (this.state.isInPresentationMode === true) {
+            // Toggle Out of Presentation Mode.
+            this.setState({ isInPresentationMode: false});
+            remote.getCurrentWindow().setFullScreen(false);
+            remote.getCurrentWindow().setMenuBarVisibility(true);
+            remote.powerSaveBlocker.stop(this.powerSaveBlockerId);
+            
+
+            clearInterval(this.presentationInterval);
+        }
+
+        else {
+            // Toggle into Presentation Mode.
+            if (this.state.slides.length !== 0) {
+                remote.getCurrentWindow().setFullScreen(true);
+                this.powerSaveBlockerId = remote.powerSaveBlocker.start("prevent-display-sleep");
+                remote.getCurrentWindow().setMenuBarVisibility(false);
+
+                this.setState({
+                    isInPresentationMode: true,
+                    selectedSlideId: this.state.slides[0].uid,
+
+                });
+                this.presentationInterval = setInterval(() => {
+
+                    this.setState({ selectedSlideId: this.getNextSlideId(this.state.selectedSlideId, this.state.slides) });
+
+                }, this.state.theme.holdTime * 1000);
+            }
+        }
+    }
+
+    getNextSlideId(currentId, slides) {
+        let slideIndex = slides.findIndex(item => {
+            return item.uid === currentId;
+        })
+
+        if (slideIndex !== slides.length -1) {
+            return slides[slideIndex + 1].uid;
+        }
+
+        else {
+            // Wrap around.
+            return slides[0].uid;
+        }
+    }
+
+    handleHoldTimeChange(newValue) {
+        let theme = {...this.state.theme};
+
+        theme.holdTime = newValue;
+
+        this.setState({theme: theme});
+
+        // Update Database
+        mainDB.theme.update(themeId, { holdTime: newValue });
+    }
+
+    handleReorderSlideButtonClick(slideId, direction) {
+        let slides = [...this.state.slides];
+
+        if (slides.length > 0) {
+            let slide = slides.find(item => {
+                return item.uid === slideId;
+            });
+
+            let otherSlideId = "";
+            let newSlideNumber;
+            let newOtherSlideNumber;
+            
+            if (direction === "up" && slide.number !== 0) {
+                let otherSlide = slides.find(item => {
+                    return item.number === slide.number - 1;
+                })
+
+                // Swap Slides.
+                slide.number--;
+                otherSlide.number++;
+
+                // Store Values out of this scope for DB Update Later
+                otherSlideId = otherSlide.uid;
+                newSlideNumber = slide.number;
+                newOtherSlideNumber = otherSlide.number;
+            }
+
+            if (direction === "down" && slide.number !== slides.length - 1) {
+                console.log("going down")
+                let otherSlide = slides.find(item => {
+                    return item.number === slide.number + 1;
+                })
+
+                // Swap Slides.
+                slide.number++;
+                otherSlide.number--
+
+                // Store Values out of this scope for DB Update Later
+                otherSlideId = otherSlide.uid;
+                newSlideNumber = slide.number;
+                newOtherSlideNumber = otherSlide.number;
+            }
+    
+            if (otherSlideId !== "") {
+                // A change in Order has Occured.
+                slides.sort((a,b) => { return a.number - b.number});
+                this.setState({slides: slides});
+
+                // Update Database.
+                mainDB.slides.update(slideId, {number: newSlideNumber}).then( () => {
+
+                })
+
+                mainDB.slides.update(otherSlideId, {number: newOtherSlideNumber}).then( () => {
+
+                })
+            }
+        }
+    }
+
+    handleOpenButtonClick() {
+        let options = {
+            title: "Open",
+            buttonLabel: "Open",
+        }
+
+        dialog.showOpenDialog(options, (filePaths => {
+            if (filePaths && filePaths.length > 0) {
+                let filePath = filePaths[0];
+                
+                jetpack.readAsync(filePath, "json").then( result => {
+                    if (result !== undefined) {
+                        this.unpackageState(result);
+                    }
+                })
+            }
+            
+        }))
+    }
+
+    handleSaveButtonClick() {
+        let options = {
+            title: "Save"
+        }
+
+        dialog.showSaveDialog(options, fileName =>  {
+            if (fileName !== undefined) {
+                jetpack.writeAsync(fileName, this.packageState(this.state), {atomic: true}).then( () => {
+                    console.log("Saved");
+                })
+            }
+        });
+    }
+    
+    packageState(state) {
+        return {
+            version: "1",
+            castMembers: state.castMembers,
+            castGroups: state.castGroups,
+            roles: state.roles,
+            roleGroups: state.roleGroups,
+            castChangeMap: state.castChangeMap,
+            orchestraChangeMap: state.orchestraChangeMap,
+            slides: state.slides,
+            orchestraMembers: state.orchestraMembers,
+            orchestraRoles: state.orchestraRoles,
+            theme: state.theme,
+        }
+    }
+
+    unpackageState(state) {
+        let deleteRequests = [];
+
+        deleteRequests.push(mainDB.castMembers.clear());
+        deleteRequests.push(mainDB.castGroups.clear());
+        deleteRequests.push(mainDB.roles.clear());
+        deleteRequests.push(mainDB.roleGroups.clear());
+        deleteRequests.push(mainDB.castChangeMap.clear());
+        deleteRequests.push(mainDB.orchestraChangeMap.clear());
+        deleteRequests.push(mainDB.slides.clear());
+        deleteRequests.push(mainDB.theme.clear());
+        deleteRequests.push(mainDB.orchestraMembers.clear());
+        deleteRequests.push(mainDB.orchestraRoles.clear());
+
+        Promise.all(deleteRequests).then(() => {
+            let bulkPutRequests = [];
+
+            bulkPutRequests.push(mainDB.castMembers.bulkPut(state.castMembers));
+            bulkPutRequests.push(mainDB.castGroups.bulkPut(state.castGroups));
+            bulkPutRequests.push(mainDB.roles.bulkPut(state.roles));
+            bulkPutRequests.push(mainDB.roleGroups.bulkPut(state.roleGroups));
+            bulkPutRequests.push(mainDB.castChangeMap.bulkPut([state.castChangeMap]));
+            bulkPutRequests.push(mainDB.orchestraChangeMap.bulkPut([state.orchestraChangeMap]));
+            bulkPutRequests.push(mainDB.slides.bulkPut(state.slides));
+            bulkPutRequests.push(mainDB.theme.bulkPut([state.theme]));
+            bulkPutRequests.push(mainDB.orchestraMembers.bulkPut(state.orchestraMembers));
+            bulkPutRequests.push(mainDB.orchestraRoles.bulkPut(state.orchestraRoles));
+
+            Promise.all(bulkPutRequests).then( () => {
+                this.setState({
+                    castMembers: state.castMembers,
+                    castGroups: state.castGroups,
+                    roles: state.roles,
+                    roleGroups: state.roleGroups,
+                    castChangeMap: state.castChangeMap,
+                    orchestraChangeMap: state.orchestraChangeMap,
+                    slides: state.slides,
+                    orchestraMembers: state.orchestraMembers,
+                    orchestraRoles: state.orchestraRoles,
+                    theme: state.theme,
+                });
+
+                console.log("Open Complete.")
+            }).catch( error => {
+                console.error(error);
+            })
+        })
+    }
+
+    handleConductorFontStyleChange(newFontStyle, controlName) {
+        let theme = {...this.state.theme};
+
+        let propertyName = "";
+        if (controlName === "name") {
+            propertyName = "conductorNameFontStyle";
+        }
+
+        else {
+            propertyName = "conductorRoleFontStyle";
+        }
+        
+        theme[propertyName] = newFontStyle;
+
+        this.setState({theme: theme});
+
+        let updateObject = {};
+        updateObject[propertyName] = newFontStyle;
+        mainDB.theme.update(themeId, updateObject).then( () => {
+
+        })
+    }
+
+    handleAssociateFontStyleChange(newFontStyle, controlName) {
+        let theme = {...this.state.theme};
+
+        let propertyName = "";
+        if (controlName === "name") {
+            propertyName = "associateNameFontStyle";
+        }
+
+        else {
+            propertyName = "associateRoleFontStyle";
+        }
+        
+        theme[propertyName] = newFontStyle;
+
+        this.setState({theme: theme});
+
+        let updateObject = {};
+        updateObject[propertyName] = newFontStyle;
+        mainDB.theme.update(themeId, updateObject).then( () => {
+
+        })
+    }
+
+    handleMusicianFontStyleChange(newFontStyle, controlName) {
+        let theme = {...this.state.theme};
+
+        let propertyName = "";
+        if (controlName === "name") {
+            propertyName = "musicianNameFontStyle";
+        }
+
+        else {
+            propertyName = "musicianRoleFontStyle";
+        }
+        
+        theme[propertyName] = newFontStyle;
+
+        this.setState({theme: theme});
+
+        let updateObject = {};
+        updateObject[propertyName] = newFontStyle;
+        mainDB.theme.update(themeId, updateObject).then( () => {
+
+        })
+    }
+
+    handleFontStyleClipboardSnackbarClose() {
+        this.setState({isFontStyleClipboardSnackbarOpen: false});
+    }
+
+    handleSetFontStyleClipboard(newValue) {
+        let appContext = {...this.state.appContext};
+        appContext.fontStyleClipboard = newValue;
+
+        this.setState({
+            appContext: appContext,
+            isFontStyleClipboardSnackbarOpen: true,
+        });
     }
 
     handleAddOrchestraRowToSlideButtonClick(uid) {
@@ -1119,6 +1435,15 @@ class AppContainer extends React.Component {
         if (slideIndex !== -1) {
             slides.splice(slideIndex, 1);
             
+            // Repair slide.numbers.
+            let numberUpdates = [];
+            slides.forEach( (item, index) => {
+                item.number = index;
+
+                // Build an update object ready to Bulk Update the DB.
+                numberUpdates.push({ uid: item.uid, number: index })
+            })
+
             this.setState({ 
                 slides: slides,
                 selectedSlideId: -1,
@@ -1126,7 +1451,10 @@ class AppContainer extends React.Component {
 
             // Delete from Database
             mainDB.slides.delete(uid).then( () => {
-
+                // Repair Slide Numbers.
+                for (let numberUpdate of numberUpdates) {
+                    mainDB.slides.update(numberUpdate.uid, {number: numberUpdate.number });
+                }
             })
         }
     }

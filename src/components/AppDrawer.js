@@ -1,6 +1,7 @@
 import React from 'react';
 import SingleFontStylePicker from './SingleFontStylePicker';
 import HeadshotFontStylePicker from './HeadshotFontStylePicker';
+import OrchestraFontStylePicker from './OrchestraFontStylePicker';
 import CastGroup from './CastGroup';
 import CastMemberSelect from './CastMemberSelect';
 import OrchestraMemberSelect from './OrchestraMemberSelect';
@@ -32,6 +33,22 @@ import ColorPicker from './ColorPicker';
 import RoleGroupFactory from '../factories/RoleGroupFactory';
 import RoleGroup from './RoleGroup';
 import GetOrchestraIdFromMap from '../utilties/GetOrchestraIdFromMap';
+
+let CollapseHorizontalIcon = (props) => {
+    return (
+        <SvgIcon {...props} viewBox="0 0 24 24" width="24" height="24">
+            <path d="M19 2h-4.18C14.4.84 13.3 0 12 0c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm7 18H5V4h2v3h10V4h2v16z"/>
+        </SvgIcon>
+    )
+}
+
+let ExpandHorizontalIcon = (props) => {
+    return (
+        <SvgIcon {...props} viewBox="0 0 24 24" width="24" height="24">
+            <path d="M9,11H15V8L19,12L15,16V13H9V16L5,12L9,8V11M2,20V4H4V20H2M20,20V4H22V20H20Z"/>
+        </SvgIcon>
+    )
+}
 
 let RoleListItem = (props) => {
     return (
@@ -136,7 +153,7 @@ class AppDrawer extends React.Component {
 
         // State.
         this.state = {
-            primaryTab: 3,
+            primaryTab: 0,
             secondaryTab: 0
         }
 
@@ -296,6 +313,14 @@ class AppDrawer extends React.Component {
                                         </ListItemSecondaryAction>
                                     </ListItem>
 
+                                    <ListItem>
+                                        <ListItemText primary="Slide hold time" secondary="How long in seconds will each slide hold for"/>
+                                        <ListItemSecondaryAction>
+                                            <TextField type="number" defaultValue={this.props.theme.holdTime}
+                                             onChange={(e) => {this.props.onHoldTimeChange(e.target.value)}}/>
+                                        </ListItemSecondaryAction>
+                                    </ListItem>
+
                                     <Divider/>
                                     <ListSubheader> Cast Theme </ListSubheader>
 
@@ -350,40 +375,35 @@ class AppDrawer extends React.Component {
                                     <ListItem>
                                         <ListItemText primary="Conductor Text Style"/>
                                         <ListItemSecondaryAction>
-                                            <HeadshotFontStylePicker 
-                                            actorFontStyle={this.props.theme.ensembleActorFontStyle}
-                                            roleFontStyle={this.props.theme.ensembleRoleFontStyle}
-                                            onChange={this.props.onEnsembleFontStyleChange}/>
+                                            <OrchestraFontStylePicker 
+                                            nameFontStyle={this.props.theme.conductorNameFontStyle}
+                                            roleFontStyle={this.props.theme.conductorRoleFontStyle}
+                                            onChange={this.props.onConductorFontStyleChange}/>
                                         </ListItemSecondaryAction>
                                     </ListItem>
 
                                     <ListItem>
                                         <ListItemText primary="Associate/Assistant Name Style"/>
                                         <ListItemSecondaryAction>
-                                            <HeadshotFontStylePicker 
-                                            actorFontStyle={this.props.theme.ensembleActorFontStyle}
-                                            roleFontStyle={this.props.theme.ensembleRoleFontStyle}
-                                            onChange={this.props.onEnsembleFontStyleChange}/>
+                                            <OrchestraFontStylePicker 
+                                            nameFontStyle={this.props.theme.associateNameFontStyle}
+                                            roleFontStyle={this.props.theme.associateRoleFontStyle}
+                                            onChange={this.props.onAssociateFontStyleChange}/>
                                         </ListItemSecondaryAction>
                                     </ListItem>
 
                                     <ListItem>
                                         <ListItemText primary="Musician Name Style"/>
                                         <ListItemSecondaryAction>
-                                            <HeadshotFontStylePicker 
-                                            actorFontStyle={this.props.theme.ensembleActorFontStyle}
-                                            roleFontStyle={this.props.theme.ensembleRoleFontStyle}
-                                            onChange={this.props.onEnsembleFontStyleChange}/>
+                                            <OrchestraFontStylePicker 
+                                            nameFontStyle={this.props.theme.musicianNameFontStyle}
+                                            roleFontStyle={this.props.theme.musicianRoleFontStyle}
+                                            onChange={this.props.onMusicianFontStyleChange}/>
                                         </ListItemSecondaryAction>
                                     </ListItem>
-
                                 </List>
-                                
-                                
-
                             </Grid>
                         </Paper>
-
                     </div>
                 </div>
             </div>
@@ -551,7 +571,7 @@ class AppDrawer extends React.Component {
                     <ListItem divider={true}>
                         <ListItemText primary="Slide Title Style"/>
                         <ListItemSecondaryAction>
-                            <FontStylePicker fontStyle={selectedSlide.titleFontStyle}
+                            <SingleFontStylePicker fontStyle={selectedSlide.titleFontStyle}
                             onChange={ fontStyle => {this.props.onSlideTitleFontStyleChange(selectedSlide.uid, fontStyle)}}/>
                         </ListItemSecondaryAction>
                     </ListItem>
@@ -618,22 +638,30 @@ class AppDrawer extends React.Component {
     }
 
     getSlidesJSX() {
-        let slidesJSX = this.props.slides.map( item => {
+        let sortedSlides = this.props.slides.sort((a,b) => { return a.number - b.number})
+
+        let slidesJSX = sortedSlides.map( item => {
             let selected = item.uid === this.props.selectedSlideId;
 
             return (
-                <ListItem key={item.uid} selected={selected} onClick={ () => {this.props.onSlideSelect(item.uid)}}>
-                    <ListItemIcon>
-                        <Typography> {item.number} </Typography>
-                    </ListItemIcon>
-                    <TextField label="Name" defaultValue={item.name} onBlur={ (e) => { this.props.onSlideNameChange(item.uid, e.target.value)}}/>
-                    <ListItemSecondaryAction>
-                        <SlideTypeSelect value={item.type} onChange={(e) => { this.props.onSlideTypeChange(item.uid, e.target.value)}}/>
-                        <IconButton onClick={() => {this.props.onDeleteSlideButtonClick(item.uid)}}>
-                            <DeleteIcon/>
-                        </IconButton>
-                    </ListItemSecondaryAction>
-                </ListItem>
+                    <ListItem key={item.uid} selected={selected} onClick={() => { this.props.onSlideSelect(item.uid) }}>
+                        <ListItemIcon>
+                            <Typography> {item.number + 1} </Typography>
+                        </ListItemIcon>
+                        <TextField label="Name" defaultValue={item.name} onBlur={(e) => { this.props.onSlideNameChange(item.uid, e.target.value) }} />
+                        <ListItemSecondaryAction>
+                            <SlideTypeSelect value={item.type} onChange={(e) => { this.props.onSlideTypeChange(item.uid, e.target.value) }} />
+                            <IconButton onClick={() => { this.props.onReorderSlideButtonClick(item.uid, "up") }}>
+                                <ArrowUpIcon />
+                            </IconButton>
+                            <IconButton onClick={() => { this.props.onReorderSlideButtonClick(item.uid, "down") }}>
+                                <ArrowDownIcon />
+                            </IconButton>
+                            <IconButton onClick={() => { this.props.onDeleteSlideButtonClick(item.uid) }}>
+                                <DeleteIcon />
+                            </IconButton>
+                        </ListItemSecondaryAction>
+                    </ListItem>
             )
         })
 

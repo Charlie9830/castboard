@@ -2,7 +2,7 @@ import React from 'react';
 import ColorPicker from './ColorPicker';
 import '../assets/css/FontStyleControl.css';
 import { Grid, FormControlLabel, TextField, Checkbox, Paper, Popover, IconButton, Typography, Button, SvgIcon } from '@material-ui/core';
-
+import AppContext from '../contexts/AppContext';
 
 let PasteContentIcon = (props) => {
     return (
@@ -63,18 +63,18 @@ class FontStyleControl extends React.Component {
         this.handleFontSizeChange = this.handleFontSizeChange.bind(this);
         this.handleBoldChange = this.handleBoldChange.bind(this);
         this.handleItalicsChange = this.handleItalicsChange.bind(this);
+        this.handleCopyFontStyleButtonClick = this.handleCopyFontStyleButtonClick.bind(this);
+        this.handlePasteFontStyleButtonClick = this.handlePasteFontStyleButtonClick.bind(this);
     }
 
     render() {
+        let { fontStyleClipboard } = this.context;
+
         let fontFamily = this.props.fontStyle !== undefined ? this.props.fontStyle.fontFamily : "Comic Sans MT";
         let fontSize = this.props.fontStyle !== undefined  ? this.props.fontStyle.fontSize : 12;
         let isBold = this.props.fontStyle !== undefined ? this.props.fontStyle.bold : false;
         let isItalics =  this.props.fontStyle !== undefined ? this.props.fontStyle.italics : false;
         let color = this.props.fontStyle !== undefined ? this.props.fontStyle.color : "#000000";
-
-        let { fontStyleClipboard, setFontStyleClipboard } = this.context;
-
-        console.log(this.context);
 
         return (
                 <div className="FontStylePickerGrid">
@@ -99,20 +99,30 @@ class FontStyleControl extends React.Component {
                     </div>
 
                     <div className="FontStylePickerCopyStyle">
-                        <IconButton onClick={() => { setFontStyleClipboard(this.props.fontStyle)}}>
+                        <IconButton onClick={this.handleCopyFontStyleButtonClick}>
                             <CopyContentIcon/>
                         </IconButton>
                     </div>
 
                     <div className="FontStylePickerPasteStyle">
-                        <IconButton onClick={() => { this.props.onChange(fontStyleClipboard)}}>
+                        <IconButton disabled={fontStyleClipboard === null} onClick={this.handlePasteFontStyleButtonClick}>
                             <PasteContentIcon/>
                         </IconButton>
                     </div>
-
-
                 </div>
         )
+    }
+
+    handleCopyFontStyleButtonClick() {
+        let { setFontStyleClipboard } = this.context;
+        setFontStyleClipboard({...this.props.fontStyle});
+    }
+
+    handlePasteFontStyleButtonClick() {
+        let { fontStyleClipboard } = this.context;
+        if (fontStyleClipboard !== null) {
+            this.props.onChange(fontStyleClipboard);
+        }
     }
 
     handleColorChange(newValue) {
@@ -160,4 +170,6 @@ class FontStyleControl extends React.Component {
     }
 }
 
+
+FontStyleControl.contextType = AppContext;
 export default FontStyleControl;

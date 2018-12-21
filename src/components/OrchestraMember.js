@@ -23,6 +23,15 @@ let OrchestraMember = (props) => {
         ...getRoleFontStyle(props.billing, props.theme),
     }
 
+    if (props.billing === "conductor") {
+        return (
+            <div style={containerStyle}>
+                <div style={roleStyle}> CONDUCTING THIS PERFORMANCE </div>
+                <div style={nameStyle}> {props.name} </div>
+            </div>
+        )
+    }
+
     return (
         <div style={containerStyle}>
             <div style={nameStyle}> {props.name} </div>
@@ -32,18 +41,12 @@ let OrchestraMember = (props) => {
 }
 
 let getNameFontStyle = (billing, theme) => {
-    
-    return {color: 'black'};
-
-    let propertyName = `${billing}ActorFontStyle`;
+    let propertyName = `${billing}NameFontStyle`;
 
     return GetStyleFromFontStyle(theme[propertyName]);
 }
 
 let getRoleFontStyle = (billing, theme) => {
-
-    return {color: 'black'};
-
     
     let propertyName = `${billing}RoleFontStyle`;
 
