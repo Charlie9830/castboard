@@ -4,7 +4,7 @@ let OrchestraRowFactory = (rowNumber) => {
     return {
         uid: GetUID(),
         rowNumber: rowNumber,
-        roles: [],
+        roleIds: [],
     }
 }
 

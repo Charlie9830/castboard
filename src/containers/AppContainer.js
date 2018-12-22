@@ -97,7 +97,7 @@ class AppContainer extends React.Component {
         this.handlePrevSlideButtonClick = this.handlePrevSlideButtonClick.bind(this);
         this.handleAddCastMemberButtonClick = this.handleAddCastMemberButtonClick.bind(this);
         this.handleCastMemberNameChange = this.handleCastMemberNameChange.bind(this);
-        this.handleCastMemberBillingChange = this.handleCastMemberBillingChange.bind(this);
+        this.handleRoleBillingChange = this.handleRoleBillingChange.bind(this);
         this.handleCastMemberDeleteButtonClick = this.handleCastMemberDeleteButtonClick.bind(this);
         this.handleAddRoleButtonClick = this.handleAddRoleButtonClick.bind(this);
         this.handleDeleteRoleButtonClick = this.handleDeleteRoleButtonClick.bind(this);
@@ -291,7 +291,7 @@ class AppContainer extends React.Component {
                         onAddCastMemberButtonClick={this.handleAddCastMemberButtonClick}
                         castMembers={this.state.castMembers}
                         onCastMemberNameChange={this.handleCastMemberNameChange}
-                        onCastMemberBillingChange={this.handleCastMemberBillingChange}
+                        onRoleBillingChange={this.handleRoleBillingChange}
                         onCastMemberDeleteButtonClick={this.handleCastMemberDeleteButtonClick}
                         onAddRoleButtonClick={this.handleAddRoleButtonClick}
                         roles={this.state.roles}
@@ -744,8 +744,7 @@ class AppContainer extends React.Component {
         let onChoose = (roleId) => {
             this.setState({roleSelectDialog: { open: false, onChoose: null, onCancel: null }});
 
-            let role = this.getRole(this.state.orchestraRoles, roleId);
-            orchestraRow.roles.push(role);
+            orchestraRow.roleIds.push(roleId);
 
             this.setState({slides: slides});
 
@@ -1000,7 +999,7 @@ class AppContainer extends React.Component {
 
     handleAddRoleToGroupButtonClick(groupId) {
         let roles = [...this.state.roles];
-        let newRole = RoleFactory("", groupId )
+        let newRole = RoleFactory("", groupId);
 
         roles.push(newRole);
 
@@ -1043,7 +1042,7 @@ class AppContainer extends React.Component {
 
     handleAddCastMemberToGroupButtonClick(groupId) {
         let castMembers = [...this.state.castMembers];
-        let newCastMember = CastMemberFactory("", "ensemble", groupId);
+        let newCastMember = CastMemberFactory("", groupId);
         castMembers.push(newCastMember);
 
         this.setState({castMembers: castMembers });
@@ -1169,12 +1168,12 @@ class AppContainer extends React.Component {
             return item.uid === castRowId;
         })
 
-        let roleIndex = castRow.roles.findIndex(item => {
-            return item.uid === roleId;
+        let roleIndex = castRow.roleIds.findIndex(item => {
+            return item === roleId;
         })
 
         if (roleIndex !== -1) {
-            castRow.roles = TryShiftItemBackward(roleIndex, castRow.roles);
+            castRow.roleIds = TryShiftItemBackward(roleIndex, castRow.roleIds);
 
             this.setState({ slides: slides});
 
@@ -1195,12 +1194,12 @@ class AppContainer extends React.Component {
             return item.uid === castRowId;
         })
 
-        let roleIndex = castRow.roles.findIndex(item => {
-            return item.uid === roleId;
+        let roleIndex = castRow.roleIds.findIndex(item => {
+            return item === roleId;
         })
 
         if (roleIndex !== -1) {
-            castRow.roles = TryShiftItemForward(roleIndex, castRow.roles);
+            castRow.roleIds = TryShiftItemForward(roleIndex, castRow.rolesIds);
 
             this.setState({ slides: slides});
 
@@ -1243,12 +1242,12 @@ class AppContainer extends React.Component {
             return item.uid === castRowId;
         })
 
-        let roleIndex = castRow.roles.findIndex(item => {
-            return item.uid === roleId;
+        let roleIndex = castRow.roleIds.findIndex(item => {
+            return item === roleId;
         })
 
         if (roleIndex !== -1) {
-            castRow.roles.splice(roleIndex, 1);
+            castRow.roleIds.splice(roleIndex, 1);
             this.setState({ slides: slides });
 
             // Update Database.
@@ -1256,8 +1255,6 @@ class AppContainer extends React.Component {
 
             });
         }
-
-
     }
 
     handleSlideTitleChange(uid, newValue) {
@@ -1305,8 +1302,7 @@ class AppContainer extends React.Component {
         let onChoose = (roleId) => {
             this.setState({roleSelectDialog: { open: false, onChoose: null, onCancel: null }});
 
-            let role = this.getRole(this.state.roles, roleId);
-            castRow.roles.push(role);
+            castRow.roleIds.push(roleId);
 
             this.setState({slides: slides});
 
@@ -1324,12 +1320,6 @@ class AppContainer extends React.Component {
         // Trigger Role Select Dialog.
         this.setState({roleSelectDialog: { open: true, roles: this.state.roles, onChoose: onChoose, onCancel: onCancel}});
         
-    }
-
-    getRole(roles, roleId) {
-        return roles.find(item => {
-            return item.uid === roleId;
-        })
     }
 
     handleAddRowToSlideButtonClick(uid) {
@@ -1692,18 +1682,18 @@ class AppContainer extends React.Component {
         }
     }
 
-    handleCastMemberBillingChange(uid, newValue) {
-        let castMembers = [...this.state.castMembers];
-        let castMember = castMembers.find(item => {
+    handleRoleBillingChange(uid, newValue) {
+        let roles = [...this.state.roles];
+        let role = roles.find(item => {
             return item.uid === uid;
         })
 
-        castMember.billing = newValue;
+        role.billing = newValue;
 
-        this.setState({castMembers: castMembers});
+        this.setState({roles: roles});
 
         // Update DB
-        mainDB.castMembers.update(castMember.uid, { billing: newValue }).then( result => {
+        mainDB.roles.update(uid, { billing: newValue }).then( result => {
 
         })
     }
@@ -1726,7 +1716,7 @@ class AppContainer extends React.Component {
 
     handleAddCastMemberButtonClick() {
         let castMembers = [...this.state.castMembers];
-        let newCastMember = CastMemberFactory("", "ensemble", "-1");
+        let newCastMember = CastMemberFactory("", "-1");
         castMembers.push(newCastMember);
 
         this.setState({castMembers: castMembers });

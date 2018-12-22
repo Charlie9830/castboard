@@ -4,7 +4,7 @@ let CastRowFactory = (rowNumber) => {
     return {
         uid: GetUID(),
         rowNumber: rowNumber,
-        roles: [],
+        roleIds: [],
     }
 }
 

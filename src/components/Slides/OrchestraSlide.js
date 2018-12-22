@@ -3,6 +3,7 @@ import SlideBase from './SlideBase';
 import GetStyleFromFontStyle from '../../utilties/GetStyleFromFontStyle';
 import OrchestraRow from '../OrchestraRow';
 import OrchestraMember from '../OrchestraMember';
+import GetRoleFromState from '../../utilties/GetRoleFromState';
 
 let OrchestraSlide = (props) => {
     let containerStyle = {
@@ -30,7 +31,8 @@ let OrchestraSlide = (props) => {
             <div style={containerStyle}>
 
                 <div style={childrenContainerStyle}>
-                    {getSlideContentsJSX(props.slide, props.orchestraMembers, props.orchestraChangeMap, props.theme)}
+                    {getSlideContentsJSX(props.slide, props.orchestraMembers,
+                         props.orchestraChangeMap, props.orchestraRoles, props.theme)}
                 </div>
 
             </div>
@@ -38,9 +40,10 @@ let OrchestraSlide = (props) => {
     )
 }
 
-let getSlideContentsJSX = (slide, orchestraMembers, orchestraChangeMap, theme) => {
+let getSlideContentsJSX = (slide, orchestraMembers, orchestraChangeMap, orchestraRoles, theme) => {
     let jsx = slide.orchestraRows.map( item => {
-        let membersJSX = item.roles.map( role => {
+        let membersJSX = item.roleIds.map( roleId => {
+            let role = GetRoleFromState(roleId, orchestraRoles);
             let orchestraMember = getOrchestraMember(role.uid, orchestraMembers, orchestraChangeMap)
 
             if (orchestraMember !== undefined) {

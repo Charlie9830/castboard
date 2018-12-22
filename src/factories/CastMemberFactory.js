@@ -1,9 +1,8 @@
 import GetUID from '../utilties/GetUID';
 
-let CastMemberFactory = (name, billing, groupId) => {
+let CastMemberFactory = (name, groupId) => {
     return {
         name: name,
-        billing: billing,
         groupId: groupId,
         uid: GetUID(),
     }

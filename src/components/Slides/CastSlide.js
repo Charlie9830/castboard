@@ -4,6 +4,7 @@ import GetStyleFromFontStyle from '../../utilties/GetStyleFromFontStyle';
 import CastRow from '../CastRow';
 import CastMember from '../CastMember';
 import GetCastIdFromMap from '../../utilties/GetCastIdFromMap';
+import GetRoleFromState from '../../utilties/GetRoleFromState';
 
 let CastSlide = (props) => {
     let containerStyle = {
@@ -45,7 +46,7 @@ let CastSlide = (props) => {
                 </div>
 
                 <div style={childrenContainerStyle}>
-                    {getSlideContentsJSX(props.slide, props.castMembers, props.castChangeMap, props.theme)}
+                    {getSlideContentsJSX(props.slide, props.castMembers, props.castChangeMap, props.roles, props.theme)}
                 </div>
 
             </div>
@@ -53,10 +54,11 @@ let CastSlide = (props) => {
     )
 }
 
-let getSlideContentsJSX = (slide, castMembers, castChangeMap, theme) => {
+let getSlideContentsJSX = (slide, castMembers, castChangeMap, roles, theme) => {
     let jsx = slide.castRows.map( row => {
-        let rolesJSX = row.roles.map( role => {
-            let castId = GetCastIdFromMap(castChangeMap, role.uid );
+        let rolesJSX = row.roleIds.map( roleId => {
+            let role = GetRoleFromState(roleId, roles);
+            let castId = GetCastIdFromMap(castChangeMap, roleId );
 
             if (castId === undefined || castId === -1) {
                 // Track Cut
@@ -73,7 +75,7 @@ let getSlideContentsJSX = (slide, castMembers, castChangeMap, theme) => {
             }
 
             return (
-                <CastMember key={castId} name={castMember.name} character={role.displayedName} billing={castMember.billing}
+                <CastMember key={castId} name={castMember.name} character={role.displayedName} billing={role.billing}
                 theme={theme} headshot={castMember.headshot}/>
             )
         })

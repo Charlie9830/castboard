@@ -7,6 +7,8 @@ import CastMemberSelect from './CastMemberSelect';
 import OrchestraMemberSelect from './OrchestraMemberSelect';
 import CastGroupChooser from './CastGroupChooser';
 
+import GetRoleFromState from '../utilties/GetRoleFromState';
+
 import { Drawer, AppBar, Toolbar, Typography, Grid, Tabs, Tab, List, Button, ListItem,
      ListItemText, FormControlLabel, TextField, Select, ListItemSecondaryAction, IconButton,
       Paper, ListItemIcon, Avatar, MenuItem, Checkbox, ListSubheader, Divider } from '@material-ui/core';
@@ -58,12 +60,14 @@ let RoleListItem = (props) => {
                 <ScriptIcon />
             </ListItemIcon>
 
-            <TextField placeholder="Internal Role Name" defaultValue={props.name} onBlur={(e) => {props.onRoleNameChange(e.target.value) }} />
+            <TextField style={{width: '192px'}}
+             placeholder="Internal Role Name" defaultValue={props.name} onBlur={(e) => {props.onRoleNameChange(e.target.value) }} />
 
             {/* Uses value and onChange so that the value can be updated after Render. Using defaultValue only allows you to
             to update on the initial render.  */} 
-            <TextField style={{marginLeft: '8px'}} value={props.displayedName}
+            <TextField style={{width: '192px', marginLeft: '8px'}} value={props.displayedName}
              onChange={(e) => {props.onDisplayedNameChange(e.target.value)}} placeholder="Displayed Role Name"/>
+             <BillingSelect value={props.billing} onChange={(e) => { props.onBillingChange(e.target.value) }} />
 
             <ListItemSecondaryAction>
                 <IconButton onClick={props.onDeleteButtonClick}>
@@ -83,7 +87,7 @@ let CastMemberListItem = (props) => {
                 justify="flex-start">
                 <TextField style={{marginLeft: '16px'}}
                  placeholder="Enter cast name..." defaultValue={props.name} onBlur={(e) => { props.onCastMemberNameChange(e.target.value) }} />
-                <BillingSelect value={props.billing} onChange={(e) => { props.onCastMemberBillingChange(e.target.value) }} />
+                
             </Grid>
 
             <ListItemSecondaryAction>
@@ -433,7 +437,9 @@ class AppDrawer extends React.Component {
         if (selectedSlide !== undefined) {
             let jsx = selectedSlide.castRows.map( (item, index) => {
 
-                let rolesJSX = item.roles.map( role => {
+                let rolesJSX = item.roleIds.map( roleId => {
+                    let role = GetRoleFromState(roleId, this.props.roles);
+
                     return (
                         <ListItem style={{marginLeft: '32px'}} key={role.uid}>
                             <ListItemIcon>
@@ -480,7 +486,9 @@ class AppDrawer extends React.Component {
         if (selectedSlide !== undefined) {
             let jsx = selectedSlide.orchestraRows.map( (item, index) => {
 
-                let rolesJSX = item.roles.map( role => {
+                let rolesJSX = item.roleIds.map( roleId => {
+                    let role = GetRoleFromState(roleId, this.props.orchestraRoles);
+
                     return (
                         <ListItem style={{marginLeft: '32px'}} key={role.uid}>
                             <ListItemIcon>
@@ -887,7 +895,9 @@ class AppDrawer extends React.Component {
             return (
                 <RoleListItem key={item.uid} name={item.name} displayedName={item.displayedName} onRoleNameChange={(newValue) => {this.props.onRoleNameChange(item.uid, newValue)}}
                         onDeleteButtonClick={() => {this.props.onDeleteRoleButtonClick(item.uid)}}
-                        onDisplayedNameChange={(newValue) => {this.props.onRoleDisplayedNameChange(item.uid, newValue)}}/>
+                        onDisplayedNameChange={(newValue) => {this.props.onRoleDisplayedNameChange(item.uid, newValue)}}
+                        onBillingChange={(newValue) => {this.props.onRoleBillingChange(item.uid, newValue)}}
+                        billing={item.billing}/>
             )
         })
 
@@ -901,7 +911,9 @@ class AppDrawer extends React.Component {
                     return (
                         <RoleListItem inset={true} key={role.uid} name={role.name} displayedName={role.displayedName} onRoleNameChange={(newValue) => {this.props.onRoleNameChange(role.uid, newValue)}}
                         onDeleteButtonClick={() => {this.props.onDeleteRoleButtonClick(role.uid)}}
-                        onDisplayedNameChange={(newValue) => {this.props.onRoleDisplayedNameChange(role.uid, newValue)}}/>
+                        onDisplayedNameChange={(newValue) => {this.props.onRoleDisplayedNameChange(role.uid, newValue)}}
+                        onBillingChange={(newValue) => {this.props.onRoleBillingChange(role.uid, newValue)}}
+                        billing={role.billing}/>
                     )
                 }
             })
@@ -934,9 +946,7 @@ class AppDrawer extends React.Component {
         let ungroupedCastJSX = ungroupedCast.map( item => {
             return (
                 <CastMemberListItem key={item.uid} headshot={item.headshot} name={item.name} uid={item.uid}
-                    billing={item.billing}
                     onCastMemberNameChange={(newValue) => { this.props.onCastMemberNameChange(item.uid, newValue) }}
-                    onCastMemberBillingChange={(newValue) => { this.props.onCastMemberBillingChange(item.uid, newValue) }}
                     onAddHeadshotButtonClick={() => { this.props.onAddHeadshotButtonClick(item.uid) }}
                     onCastMemberDeleteButtonClick={() => { this.props.onCastMemberDeleteButtonClick(item.uid) }}
                 />

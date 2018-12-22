@@ -68,7 +68,7 @@ class App extends Component {
           onAddCastMemberButtonClick={this.props.onAddCastMemberButtonClick}
           castMembers={this.props.castMembers}
           onCastMemberNameChange={this.props.onCastMemberNameChange}
-          onCastMemberBillingChange={this.props.onCastMemberBillingChange}
+          onRoleBillingChange={this.props.onRoleBillingChange}
           onCastMemberDeleteButtonClick={this.props.onCastMemberDeleteButtonClick}
           onAddRoleButtonClick={this.props.onAddRoleButtonClick}
           roles={this.props.roles}
@@ -146,7 +146,8 @@ class App extends Component {
           {/* Any Changes to Props for SlideRenderer should be Reflected in the other Instnce of SlideRenderer.  */} 
           <SlideRenderer theme={this.props.theme} slide={this.getCurrentSlide(this.props.slides, this.props.selectedSlideId)}
           castMembers={this.props.castMembers} castChangeMap={this.props.castChangeMap}
-          orchestraMembers={this.props.orchestraMembers} orchestraChangeMap={this.props.orchestraChangeMap} />
+          orchestraMembers={this.props.orchestraMembers} orchestraChangeMap={this.props.orchestraChangeMap}
+          roles={this.props.roles} orchestraRoles={this.props.orchestraRoles} />
         </div>
       </div>
     );
@@ -157,7 +158,8 @@ class App extends Component {
       <div className="AppPresentationMode">
         <SlideRenderer theme={this.props.theme} slide={this.getCurrentSlide(this.props.slides, this.props.selectedSlideId)}
           castMembers={this.props.castMembers} castChangeMap={this.props.castChangeMap}
-          orchestraMembers={this.props.orchestraMembers} orchestraChangeMap={this.props.orchestraChangeMap} />
+          orchestraMembers={this.props.orchestraMembers} orchestraChangeMap={this.props.orchestraChangeMap}
+          roles={this.props.roles} orchestraRoles={this.props.orchestraRoles} />
       </div>
     )
   }

@@ -21,10 +21,11 @@ let SlideRenderer = (props) => {
         case "cast": 
             return <CastSlide theme={props.theme} slide={props.slide} 
              castMembers={props.castMembers}
-             castChangeMap={props.castChangeMap}/>
+             castChangeMap={props.castChangeMap}
+             roles={props.roles}/>
 
         case "orchestra":
-            return <OrchestraSlide theme={props.theme} slide={props.slide}
+            return <OrchestraSlide theme={props.theme} slide={props.slide} orchestraRoles={props.orchestraRoles}
             orchestraMembers={props.orchestraMembers} orchestraChangeMap={props.orchestraChangeMap}/>
             
         default:

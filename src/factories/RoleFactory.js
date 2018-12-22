@@ -5,6 +5,7 @@ let RoleFactory = (name, groupId) => {
         name: name,
         displayedName: "",
         uid: GetUID(),
+        billing: "ensemble",
         groupId: groupId,
     }
 }
