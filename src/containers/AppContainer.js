@@ -5,7 +5,7 @@ import jetpack from 'fs-jetpack';
 import TryShiftItemForward from '../utilties/TryShiftItemForward';
 import TryShiftItemBackward from '../utilties/TryShiftItemBackward';
 import { AppContext, AppContextDefaultValue } from '../contexts/AppContext';
-const { remote } = require('electron');
+const { remote, ipcRenderer } = require('electron');
 const { dialog } = remote;
 
 import { MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles';
@@ -159,6 +159,7 @@ class AppContainer extends React.Component {
         this.handleReorderSlideButtonClick = this.handleReorderSlideButtonClick.bind(this);
         this.handleHoldTimeChange = this.handleHoldTimeChange.bind(this);
         this.handleTogglePresentationMode = this.handleTogglePresentationMode.bind(this);
+        this.packageStateForRemote = this.packageStateForRemote.bind(this);
     }
 
     componentDidMount() {
@@ -267,13 +268,23 @@ class AppContainer extends React.Component {
                 this.setState({roleGroups: roleGroups});
             }
         })
+
+        // Register Main Process Events.
+        ipcRenderer.on('get-data', () => {
+            ipcRenderer.send('receive-data', this.packageStateForRemote());
+        })
+
+        ipcRenderer.on('receive-data', (event, data) => {
+            this.setState({
+                castChangeMap: data.castChangeMap,
+            })
+        })
     }
 
     render() {
         return (
             <MuiThemeProvider theme={muiTheme}>
                 <AppContext.Provider value={this.state.appContext}>
-
                     <App currentSlide={this.state.currentSlide}
                         onNextSlideButtonClick={this.handleNextSlideButtonClick}
                         onPrevSlideButtonClick={this.handlePrevSlideButtonClick}
@@ -356,6 +367,28 @@ class AppContainer extends React.Component {
                 </AppContext.Provider>
             </MuiThemeProvider>
         )
+    }
+
+    packageStateForRemote() {
+        return {
+            castMembers: this.stripHeadshots(this.state.castMembers),
+            castGroups: [...this.state.castGroups],
+            roles: [...this.state.roles],
+            roleGroups: [...this.state.roleGroups],
+            castChangeMap: {...this.state.castChangeMap},
+            orchestraMembers: [...this.state.orchestraMembers],
+            orchestraRoles: [...this.state.orchestraRoles],
+            orchestraChangeMap: {...this.state.orchestraChangeMap},
+        }
+    }
+
+    stripHeadshots(castMembers) {
+        let castMembersCopy = [...castMembers];
+        castMembersCopy.forEach(item => {
+            item.headshot = undefined;
+        })
+
+        return castMembersCopy;
     }
 
     handleTogglePresentationMode() {
@@ -445,7 +478,6 @@ class AppContainer extends React.Component {
             }
 
             if (direction === "down" && slide.number !== slides.length - 1) {
-                console.log("going down")
                 let otherSlide = slides.find(item => {
                     return item.number === slide.number + 1;
                 })

@@ -1,9 +1,48 @@
 'use strict';
 
 // Import parts of electron to use
-const {app, BrowserWindow} = require('electron');
+const {app, BrowserWindow, ipcMain} = require('electron');
 const path = require('path')
 const url = require('url')
+const Server = require('./src/server/Server');
+
+
+// Remote Server
+const RemoteServer = new Server();
+let lastReturnDataCallback;
+
+RemoteServer.on("connection-received", handleConnectionReceived);
+RemoteServer.on("get-data", handleGetData);
+RemoteServer.on("receive-data", handleReceiveData);
+
+function handleReceiveData(data) {
+  mainWindow.webContents.send("receive-data", data);
+}
+
+function handleGetData(returnDataCallback) {
+  // Save the returnDataCallback out of Scope so it can be accessed from handleReceiveDataFromRenderer.
+  lastReturnDataCallback = returnDataCallback;
+
+  // Register a listener to listen for the Reply from the Renderer.
+  ipcMain.on("receive-data", handleReceiveDataFromRenderer)
+
+  // Collect Data from Renderer Process.
+  mainWindow.webContents.send("get-data");
+}
+
+function handleReceiveDataFromRenderer(event, data) {
+  if (lastReturnDataCallback !== undefined) {
+    lastReturnDataCallback(data);
+  }
+
+  ipcMain.removeListener("receive-data", handleReceiveDataFromRenderer);
+}
+
+
+
+function handleConnectionReceived() {
+  console.log("Holy Shit It Worked!");
+}
 
 
 app.commandLine.appendSwitch('high-dpi-support', 1);
