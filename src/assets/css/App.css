@@ -34,11 +34,27 @@ body {
 
 .SlidePreviewContainer {
   grid-area: SlidePreviewArea;
-  width: 1920px;
-  height: 1080px;
+  justify-self: center;
+  align-self: center;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   background: rgb(27,27,27);
+}
+
+/* Scroll Bar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #888;
 }

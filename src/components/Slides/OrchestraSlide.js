@@ -19,7 +19,7 @@ let OrchestraSlide = (props) => {
         gridRow: 'Content',
         placeSelf: 'center',
         display: 'grid',
-        gridAutoRows: '1fr',
+        gridAutoRows: 'auto',
         justifyItems: 'center',
         alignItems: 'center',
         height: '100%',
@@ -41,15 +41,17 @@ let OrchestraSlide = (props) => {
 }
 
 let getSlideContentsJSX = (slide, orchestraMembers, orchestraChangeMap, orchestraRoles, theme) => {
-    let jsx = slide.orchestraRows.map( item => {
-        let membersJSX = item.roleIds.map( roleId => {
+    let jsx = slide.orchestraRows.map( (item, rowIndex) => {
+        let roleWidth = getRolesWidth(item.roleIds.length);
+
+        let membersJSX = item.roleIds.map( (roleId, roleIndex) => {
             let role = GetRoleFromState(roleId, orchestraRoles);
             let orchestraMember = getOrchestraMember(role.uid, orchestraMembers, orchestraChangeMap)
 
             if (orchestraMember !== undefined) {
                 return (
-                    <OrchestraMember key={role.uid} name={orchestraMember.name} billing={role.billing}
-                     seat={role.name} theme={theme}/>
+                    <OrchestraMember key={rowIndex + roleIndex + role.uid} name={orchestraMember.name} billing={role.billing}
+                     seat={role.name} theme={theme} width={roleWidth}/>
                 )
             }
             
@@ -63,6 +65,15 @@ let getSlideContentsJSX = (slide, orchestraMembers, orchestraChangeMap, orchestr
     })
 
     return jsx;
+}
+
+let getRolesWidth = (roleCount) => {
+    if (roleCount === 0) {
+        // Dont divide by Zero.
+        return '100%';
+    }
+
+    return `${100 / roleCount}%`;
 }
 
 let getOrchestraMember = (roleId, orchestraMembers, orchestraChangeMap) => {

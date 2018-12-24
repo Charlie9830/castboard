@@ -259,7 +259,7 @@ class AppDrawer extends React.Component {
     getSlidesTabJSX() {
         let containerGrid = {
             display: 'grid',
-            gridTemplateRows: '[Slides]320px [SlideProperties]auto [Theme]auto',
+            gridTemplateRows: '[Slides]auto [SlideProperties]auto [Theme]auto',
             width: '100%',
             padding: '8px'
         }
@@ -279,7 +279,7 @@ class AppDrawer extends React.Component {
         return (
             <div style={containerGrid}>
                 <div style={slidesContainer}>
-                    <Paper style={{ width: '100%', height: '100%', padding: '8px', overflowY: 'auto' }}>
+                    <Paper style={{ width: '100%', height: '100%', padding: '8px' }}>
                         <Grid container
                             direction="row"
                             justify="flex-start"

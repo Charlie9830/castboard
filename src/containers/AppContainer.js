@@ -87,6 +87,12 @@ class AppContainer extends React.Component {
             isFontStyleClipboardSnackbarOpen: false,
             appContext: {...AppContextDefaultValue, setFontStyleClipboard: (newValue) => {this.handleSetFontStyleClipboard(newValue)} },
             isInPresentationMode: false,
+            isPlaying: false,
+            remoteServerStatusSnackbar: {
+                open: false,
+                message: "",
+            },
+            scaleFactor: 1,
         }
 
         this.presentationInterval = null;
@@ -160,6 +166,8 @@ class AppContainer extends React.Component {
         this.handleHoldTimeChange = this.handleHoldTimeChange.bind(this);
         this.handleTogglePresentationMode = this.handleTogglePresentationMode.bind(this);
         this.packageStateForRemote = this.packageStateForRemote.bind(this);
+        this.setRemoteServerStatusSnackbar = this.setRemoteServerStatusSnackbar.bind(this);
+        this.handleRemoteServerStatusSnackbarClose = this.handleRemoteServerStatusSnackbarClose.bind(this);
     }
 
     componentDidMount() {
@@ -269,15 +277,53 @@ class AppContainer extends React.Component {
             }
         })
 
+        let winBounds = remote.getCurrentWindow().getBounds();
+        let activeScreen = remote.screen.getDisplayNearestPoint({x: winBounds.x, y: winBounds.y});
+
+        console.log(activeScreen.scaleFactor);
+
         // Register Main Process Events.
         ipcRenderer.on('get-data', () => {
             ipcRenderer.send('receive-data', this.packageStateForRemote());
+            this.setRemoteServerStatusSnackbar("Cast/Orchestra change sent to remote device");
         })
 
         ipcRenderer.on('receive-data', (event, data) => {
             this.setState({
                 castChangeMap: data.castChangeMap,
+                orchestraChangeMap: data.orchestraChangeMap,
             })
+
+            mainDB.castChangeMap.update(castChangeId, data.castChangeMap)
+            mainDB.orchestraChangeMap.update(orchestraChangeId, data.orchestraChangeMap);
+
+            this.setRemoteServerStatusSnackbar("New Cast/Orchestra change received");
+        })
+
+        ipcRenderer.on('playback-action', (event, action) => {
+            switch (action) {
+                case "play":
+                this.setState({ isPlaying: true });
+                break;
+
+                case "pause":
+                this.setState({ isPlaying: false});
+                break;
+
+                case "next": 
+                this.setState({
+                     selectedSlideId: this.getNextSlideId(this.state.selectedSlideId, this.state.slides)
+                    })
+                break;
+
+                case "prev":
+                this.setState({
+                    selectedSlideId: this.getPreviousSlideId(this.state.selectedSlideId, this.state.slides)
+                })
+
+                default:
+                break;
+            }
         })
     }
 
@@ -363,10 +409,30 @@ class AppContainer extends React.Component {
                         onReorderSlideButtonClick={this.handleReorderSlideButtonClick} 
                         onHoldTimeChange={this.handleHoldTimeChange}
                         onTogglePresentationMode={this.handleTogglePresentationMode}
-                        isInPresentationMode={this.state.isInPresentationMode}/>
+                        isInPresentationMode={this.state.isInPresentationMode}
+                        onRemoteServerStatusSnackbarClose={this.handleRemoteServerStatusSnackbarClose}
+                        remoteServerStatusSnackbar={this.state.remoteServerStatusSnackbar}/>
                 </AppContext.Provider>
             </MuiThemeProvider>
         )
+    }
+
+    handleRemoteServerStatusSnackbarClose() {
+        this.setState({
+            remoteServerStatusSnackbar: {
+                open: false,
+                message: this.state.remoteServerStatusSnackbar.message,
+            }
+        })
+    }
+
+    setRemoteServerStatusSnackbar(message) {
+        this.setState({
+            remoteServerStatusSnackbar: {
+                open: true,
+                message: message,
+            }
+        })
     }
 
     packageStateForRemote() {
@@ -383,12 +449,19 @@ class AppContainer extends React.Component {
     }
 
     stripHeadshots(castMembers) {
-        let castMembersCopy = [...castMembers];
-        castMembersCopy.forEach(item => {
-            item.headshot = undefined;
-        })
+        let array = [];
+        for (let member of castMembers) {
+            let newObject = {};
+            for (let propertyName in member) {
+                if (propertyName !== "headshot") {
+                    newObject[propertyName] = member[propertyName];
+                }
+            }
 
-        return castMembersCopy;
+            array.push(newObject);
+        }
+
+        return array;
     }
 
     handleTogglePresentationMode() {
@@ -412,13 +485,15 @@ class AppContainer extends React.Component {
 
                 this.setState({
                     isInPresentationMode: true,
+                    isPlaying: true,
                     selectedSlideId: this.state.slides[0].uid,
-
                 });
+
                 this.presentationInterval = setInterval(() => {
-
-                    this.setState({ selectedSlideId: this.getNextSlideId(this.state.selectedSlideId, this.state.slides) });
-
+                    if (this.state.isPlaying) {
+                        this.setState({ selectedSlideId: this.getNextSlideId(this.state.selectedSlideId, this.state.slides) });
+                    }
+                    
                 }, this.state.theme.holdTime * 1000);
             }
         }
@@ -436,6 +511,21 @@ class AppContainer extends React.Component {
         else {
             // Wrap around.
             return slides[0].uid;
+        }
+    }
+
+    getPreviousSlideId(currentId, slides) {
+        let slideIndex = slides.findIndex(item => {
+            return item.uid === currentId;
+        })
+
+        if (slideIndex !== 0) {
+            return slides[slideIndex - 1].uid;
+        }
+
+        else {
+            // Wrap around.
+            return slides[slides.length - 1].uid;
         }
     }
 

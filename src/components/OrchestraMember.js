@@ -13,14 +13,17 @@ let OrchestraMember = (props) => {
         marginLeft: '24px',
         marginRight: '24px',
         minWidth: '200px',
+        width: props.width,
     }
 
     let nameStyle = {
         ...getNameFontStyle(props.billing, props.theme),
+        textAlign: 'center',
     }
 
     let roleStyle = {
         ...getRoleFontStyle(props.billing, props.theme),
+        textAlign: 'center'
     }
 
     if (props.billing === "conductor") {

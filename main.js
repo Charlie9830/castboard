@@ -14,6 +14,11 @@ let lastReturnDataCallback;
 RemoteServer.on("connection-received", handleConnectionReceived);
 RemoteServer.on("get-data", handleGetData);
 RemoteServer.on("receive-data", handleReceiveData);
+RemoteServer.on("playback-action", handlePlaybackAction);
+
+function handlePlaybackAction(action) {
+  mainWindow.webContents.send("playback-action", action);
+}
 
 function handleReceiveData(data) {
   mainWindow.webContents.send("receive-data", data);
@@ -44,7 +49,7 @@ function handleConnectionReceived() {
   console.log("Holy Shit It Worked!");
 }
 
-
+// Command Line Args.
 app.commandLine.appendSwitch('high-dpi-support', 1);
 app.commandLine.appendSwitch('force-device-scale-factor', 1);
 

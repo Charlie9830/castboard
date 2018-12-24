@@ -29,7 +29,7 @@ let CastSlide = (props) => {
         gridRow: 'Content',
         placeSelf: 'center',
         display: 'grid',
-        gridAutoRows: '1fr',
+        gridAutoRows: 'auto',
         justifyItems: 'center',
         alignItems: 'center',
         height: '100%',
@@ -55,8 +55,8 @@ let CastSlide = (props) => {
 }
 
 let getSlideContentsJSX = (slide, castMembers, castChangeMap, roles, theme) => {
-    let jsx = slide.castRows.map( row => {
-        let rolesJSX = row.roleIds.map( roleId => {
+    let jsx = slide.castRows.map( (row, rowIndex) => {
+        let rolesJSX = row.roleIds.map( (roleId, roleIndex) => {
             let role = GetRoleFromState(roleId, roles);
             let castId = GetCastIdFromMap(castChangeMap, roleId );
 
@@ -75,7 +75,7 @@ let getSlideContentsJSX = (slide, castMembers, castChangeMap, roles, theme) => {
             }
 
             return (
-                <CastMember key={castId} name={castMember.name} character={role.displayedName} billing={role.billing}
+                <CastMember key={rowIndex + roleIndex + castId} name={castMember.name} character={role.displayedName} billing={role.billing}
                 theme={theme} headshot={castMember.headshot}/>
             )
         })

@@ -3,6 +3,7 @@ import AppDrawer from './AppDrawer';
 import SlideRenderer from './SlideRenderer';
 import SelectRoleDialog from './SelectRoleDialog';
 import FontStyleClipboardSnackbar from './FontStyleClipboardSnackbar';
+import RemoteServerStatusSnackbar from './RemoteServerStatusSnackbar';
 import '../assets/css/App.css';
 
 import { CssBaseline, AppBar, Toolbar, Typography, Button, Grid } from '@material-ui/core';
@@ -13,7 +14,7 @@ class App extends Component {
 
     // State.
     this.state = {
-      zoomLevel: 0.80,
+      zoomLevel: 1,
     }
 
     // Method Bindings.
@@ -156,6 +157,10 @@ class App extends Component {
   getPresentationModeLayout() {
     return (
       <div className="AppPresentationMode">
+        <RemoteServerStatusSnackbar open={this.props.remoteServerStatusSnackbar.open}
+          message={this.props.remoteServerStatusSnackbar.message}
+          onClose={this.props.onRemoteServerStatusSnackbarClose} />
+
         <SlideRenderer theme={this.props.theme} slide={this.getCurrentSlide(this.props.slides, this.props.selectedSlideId)}
           castMembers={this.props.castMembers} castChangeMap={this.props.castChangeMap}
           orchestraMembers={this.props.orchestraMembers} orchestraChangeMap={this.props.orchestraChangeMap}
