@@ -92,7 +92,6 @@ class AppContainer extends React.Component {
                 open: false,
                 message: "",
             },
-            scaleFactor: 1,
         }
 
         this.presentationInterval = null;

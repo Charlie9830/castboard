@@ -16,7 +16,8 @@ body {
   display: grid;
   height: 100vh;
   width: 100vw;
-  grid-template-columns: [Drawer]600px [SlidePreview]auto;
+  overflow: hidden;
+  grid-template-columns: [Drawer]600px [SlidePreview]1fr;
   grid-template-rows: [AppBar]max-content [App]auto;
   grid-template-areas:
   "AppBarArea AppBarArea"
@@ -25,6 +26,7 @@ body {
 
 .AppBarContainer {
   grid-area: AppBarArea;
+  width: 100vw;
 }
 
 .AppDrawerContainer {
@@ -34,13 +36,15 @@ body {
 
 .SlidePreviewContainer {
   grid-area: SlidePreviewArea;
-  justify-self: center;
-  align-self: center;
+  width: 100%;
+  height: 100%;
+  justify-self: flex-start;
+  align-self: flex-start;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background: rgb(27,27,27);
+  background: rgb(47,47,47);
 }
 
 /* Scroll Bar */

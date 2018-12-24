@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import AppDrawer from './AppDrawer';
 import SlideRenderer from './SlideRenderer';
+import SlideSizer from './SlideSizer';
 import SelectRoleDialog from './SelectRoleDialog';
 import FontStyleClipboardSnackbar from './FontStyleClipboardSnackbar';
 import RemoteServerStatusSnackbar from './RemoteServerStatusSnackbar';
@@ -142,13 +143,16 @@ class App extends Component {
           onHoldTimeChange={this.props.onHoldTimeChange}/>
         </div>
 
-        <div className="SlidePreviewContainer" style={{transform: `scale(${this.state.zoomLevel})`, transformOrigin: 'left top'}}>
+        <div className="SlidePreviewContainer" >
 
-          {/* Any Changes to Props for SlideRenderer should be Reflected in the other Instnce of SlideRenderer.  */} 
-          <SlideRenderer theme={this.props.theme} slide={this.getCurrentSlide(this.props.slides, this.props.selectedSlideId)}
-          castMembers={this.props.castMembers} castChangeMap={this.props.castChangeMap}
-          orchestraMembers={this.props.orchestraMembers} orchestraChangeMap={this.props.orchestraChangeMap}
-          roles={this.props.roles} orchestraRoles={this.props.orchestraRoles} />
+          <SlideSizer>
+            {/* Any Changes to Props for SlideRenderer should be Reflected in the other Instance of SlideRenderer.  */}
+            <SlideRenderer theme={this.props.theme} slide={this.getCurrentSlide(this.props.slides, this.props.selectedSlideId)}
+              castMembers={this.props.castMembers} castChangeMap={this.props.castChangeMap}
+              orchestraMembers={this.props.orchestraMembers} orchestraChangeMap={this.props.orchestraChangeMap}
+              roles={this.props.roles} orchestraRoles={this.props.orchestraRoles} />
+          </SlideSizer>
+          
         </div>
       </div>
     );
@@ -186,44 +190,6 @@ class App extends Component {
       return item.uid === slideId;
     })
   }
-
-  // getSlide(slideNumber) {
-  //     // Keep all Slides loaded in the Dom and use the "visible" prop to display each slide by itself. This Keeps the headshots
-  //     // loaded in the DOM.
-  //     return (
-  //       <React.Fragment>
-  //         <Slide visible={slideNumber === 0} title="AT THIS PERFORMANCE" backgroundImageSrc={BackgroundImageSrc}>
-  //           <CastMember headshotSrc={TinaArena} name="Tina Arena" character="Eva Peron" billing="principle" />
-  //         </Slide>
-// 
-  //         <Slide visible={slideNumber === 1}  title="AT THIS PERFORMANCE" backgroundImageSrc={BackgroundImageSrc}>
-  //           <EnsembleRow>
-  //             <CastMember headshotSrc={PauloSzot} name="Paulo Szot" character="Peron" billing="lead" />
-  //             <CastMember headshotSrc={KurtKansley} name="Kurt Kansley" character="Che" billing="lead" />
-  //             <CastMember headshotSrc={MichaelFalzon} name="Michael Falzon" character="Magaldi" billing="lead" />
-  //             <CastMember headshotSrc={AlexisVanMaanen} name="Alexis Van Maanen" character="Mistress" billing="lead" />
-  //           </EnsembleRow>
-  //         </Slide>
-
-  //         <Slide visible={slideNumber === 2}  title="AT THIS PERFORMANCE" backgroundImageSrc={BackgroundImageSrc}>
-  //           <EnsembleRow>
-  //             <CastMember headshotSrc={OliviaCarniato} name="Olivia Carniato" character="Ensemble" billing="ensemble" />
-  //             <CastMember headshotSrc={AlieCoste} name="Alie Coste" character="Ensemble" billing="ensemble" />
-  //             <CastMember headshotSrc={SamanthaDodemaide} name="Samantha Dodemaide" character="Ensemble" billing="ensemble" />
-  //             <CastMember headshotSrc={LauraField} name="Laura Field" character="Ensemble" billing="ensemble" />
-  //             <CastMember headshotSrc={AshleighGurnett} name="Ashleigh Gurnett" character="Ensemble" billing="ensemble" />
-  //           </EnsembleRow>
-
-  //           <EnsembleRow>
-  //             <CastMember headshotSrc={KateMareeHoolihan} name="Kate Maree Hoolihan" character="Ensemble" billing="ensemble" />
-  //             <CastMember headshotSrc={GeorginaHopson} name="Georgina Hopson" character="Ensemble" billing="ensemble" />
-  //             <CastMember headshotSrc={RachelWard} name="Rachel Ward" character="Ensemble" billing="ensemble" />
-  //             <CastMember headshotSrc={KathleenMoore} name="Kathleen Moore" character="Ensemble" billing="ensemble" />
-  //           </EnsembleRow>
-  //         </Slide>
-  //       </React.Fragment>
-  //     )
-  // }
 }
 
 export default App;
