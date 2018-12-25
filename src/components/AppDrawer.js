@@ -37,13 +37,23 @@ import ColorPicker from './ColorPicker';
 import RoleGroupFactory from '../factories/RoleGroupFactory';
 import RoleGroup from './RoleGroup';
 import GetOrchestraIdFromMap from '../utilties/GetOrchestraIdFromMap';
+import ToTitleCase from '../utilties/ToTitleCase';
 
-let CollapseHorizontalIcon = (props) => {
-    return (
-        <SvgIcon {...props} viewBox="0 0 24 24" width="24" height="24">
-            <path d="M19 2h-4.18C14.4.84 13.3 0 12 0c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm7 18H5V4h2v3h10V4h2v16z"/>
-        </SvgIcon>
-    )
+let DisplayedName = (props) => {
+    if (props.name !== props.displayedName) {
+        return (
+            <Grid container style={{ width: '50%' }}
+                direction="row"
+                justify="flex-start"
+                alignItems="center">
+                <Typography color="textSecondary" style={{marginRight: '8px'}}> Displayed name </Typography>
+                <Typography> {props.displayedName} </Typography>
+            </Grid>
+        )
+    }
+
+    return null;
+    
 }
 
 let CastMemberClosed = (props) => {
@@ -70,6 +80,24 @@ let CastMemberOpen = (props) => {
     )
 }
 
+let RoleOpen = (props) => {
+    return (
+        <React.Fragment>
+                    <TextField autoFocus style={{ width: '192px' }}
+                        label="Internal Role Name"
+                        defaultValue={props.name}
+                        onChange={props.onNameChange}/>
+
+                    <TextField style={{ width: '192px', marginLeft: '8px' }}
+                        value={props.displayedName}
+                        label="Display Name"
+                        onChange={props.onDisplayedNameChange} />
+
+                    <BillingSelect value={props.billing} onChange={props.onBillingChange} />
+                </React.Fragment>
+    )
+}
+
 let HeadshotListItemIcon = (props) => {
     if (props.headshot === undefined) {
         return (
@@ -88,41 +116,6 @@ let HeadshotListItemIcon = (props) => {
         )
     }
 }
-
-let ExpandHorizontalIcon = (props) => {
-    return (
-        <SvgIcon {...props} viewBox="0 0 24 24" width="24" height="24">
-            <path d="M9,11H15V8L19,12L15,16V13H9V16L5,12L9,8V11M2,20V4H4V20H2M20,20V4H22V20H20Z"/>
-        </SvgIcon>
-    )
-}
-
-let RoleListItem = (props) => {
-    return (
-
-        <ListItem style={{paddingLeft: props.inset === true ? "64px" : 'inherit'}} >
-            <ListItemIcon>
-                <ScriptIcon />
-            </ListItemIcon>
-
-            <TextField style={{width: '192px'}}
-             placeholder="Internal Role Name" defaultValue={props.name} onBlur={(e) => {props.onRoleNameChange(e.target.value) }} />
-
-            {/* Uses value and onChange so that the value can be updated after Render. Using defaultValue only allows you to
-            to update on the initial render.  */} 
-            <TextField style={{width: '192px', marginLeft: '8px'}} value={props.displayedName}
-             onChange={(e) => {props.onDisplayedNameChange(e.target.value)}} placeholder="Displayed Role Name"/>
-             <BillingSelect value={props.billing} onChange={(e) => { props.onBillingChange(e.target.value) }} />
-
-            <ListItemSecondaryAction>
-                <IconButton onClick={props.onDeleteButtonClick}>
-                    <DeleteIcon />
-                </IconButton>
-            </ListItemSecondaryAction>
-        </ListItem>
-    )
-}
-
 
 
 let SlideTypeSelect = (props) => {
@@ -241,7 +234,7 @@ class AppDrawer extends React.Component {
 
     getOrchestraChangeTabJSX() {
         return (
-            <List style={{width: '100%'}}>
+            <List style={{width: '100%', paddingLeft: '16px'}}>
                 {this.getOrchestraChangeItems()}
             </List>
         )
@@ -315,7 +308,7 @@ class AppDrawer extends React.Component {
                                 direction="column"
                                 justify="flex-start"
                                 alignItems="flex-start">
-                                <List style={{width: '100%'}}>
+                                <List style={{width: '100%', paddingLeft: '16px'}}>
                                     <ListItem>
                                         <ListItemText primary="Global Background Image" secondary="Used on all Slides except Title Slides" />
                                         <ListItemSecondaryAction>
@@ -574,7 +567,7 @@ class AppDrawer extends React.Component {
             justify="flex-start"
             alignItems="flex-start">
                 
-                <List style={{width: '90%'}}>
+                <List style={{width: '90%', paddingLeft: '16px'}}>
                     <ListItem divider={true}>
                         <ListItemText primary="Slide Title" />
                         <ListItemSecondaryAction>
@@ -597,7 +590,7 @@ class AppDrawer extends React.Component {
                         <Typography variant="subheading"> Headshot Rows </Typography>
                         <Button variant="contained" style={{marginTop: '8px'}}
                             onClick={() => { this.props.onAddRowToSlideButtonClick(this.props.selectedSlideId) }}> Add Row </Button>
-                        <List style={{ width: '90%' }}>
+                        <List style={{ width: '90%', paddingLeft: '16px' }}>
                             {this.getCastRowsJSX(this.getSelectedSlide())}
                         </List>
                     </Paper>
@@ -617,12 +610,12 @@ class AppDrawer extends React.Component {
             justify="flex-start"
             alignItems="flex-start">
                 
-                <List style={{width: '90%'}}>
+                <List style={{width: '90%', paddingLeft: '16px'}}>
                     <Paper style={{padding: '8px', marginTop: '24px'}}>
                         <Typography variant="subheading"> Orchestra Member Rows </Typography>
                         <Button variant="contained" style={{marginTop: '8px'}}
                             onClick={() => { this.props.onAddOrchestraRowToSlideButtonClick(this.props.selectedSlideId) }}> Add Row </Button>
-                        <List style={{ width: '90%' }}>
+                        <List style={{ width: '90%', paddingLeft: '16px' }}>
                             {this.getOrchestraRowsJSX(this.getSelectedSlide())}
                         </List>
                     </Paper>
@@ -686,7 +679,7 @@ class AppDrawer extends React.Component {
 
     getCastChangeTabJSX() {
         return (
-            <List style={{width: '100%'}}>
+            <List style={{width: '100%', paddingLeft: '16px'}}>
                 {this.getCastChangeListItemsJSX()}
             </List>
         )
@@ -777,9 +770,9 @@ class AppDrawer extends React.Component {
             <React.Fragment>
                 <Grid container
                     direction="row">
-                    <Button onClick={this.props.onAddOrchestraRoleButtonClick}> Add Orchestra Role </Button>
+                    <Button variant="contained" onClick={this.props.onAddOrchestraRoleButtonClick}> Add Orchestra Role </Button>
                 </Grid>
-                <List style={{width: '100%'}}>
+                <List style={{width: '100%', paddingLeft: '16px'}}>
                     {this.getOrchestraRolesJSX()}
                 </List>
             </React.Fragment>
@@ -788,21 +781,43 @@ class AppDrawer extends React.Component {
 
     getOrchestraRolesJSX() {
         let jsx = this.props.orchestraRoles.map( item => {
-            return (
-                <ListItem key={item.uid}>
-                    <ListItemIcon>
-                        <MusicNoteIcon/>
-                    </ListItemIcon>
-                    <TextField defaultValue={item.name} 
-                    onChange={(e) => {this.props.onOrchestraRoleNameChange(item.uid, e.target.value)}}/>
-                    <OrchestraBillingSelect value={item.billing} 
-                    onChange={(e) => {this.props.onOrchestraRoleBillingChange(item.uid, e.target.value)}}/>
-                    <ListItemSecondaryAction>
-                        <IconButton onClick={() => {this.props.onOrchestraRoleDeleteButtonClick(item.uid)}}>
-                            <DeleteIcon/>
+            let openComponent = (
+                <React.Fragment>
+                    <TextField autoFocus defaultValue={item.name}
+                        onChange={(e) => { this.props.onOrchestraRoleNameChange(item.uid, e.target.value) }} />
+                    <OrchestraBillingSelect value={item.billing}
+                        onChange={(e) => { this.props.onOrchestraRoleBillingChange(item.uid, e.target.value) }} />
+                </React.Fragment>
+            )
+
+            let closedComponentSecondaryActions = (
+                <React.Fragment>
+                        <IconButton onClick={() => { this.props.onEditListItemButtonClick(item.uid, "orchestraRole")}}>
+                            <EditIcon/>
                         </IconButton>
-                    </ListItemSecondaryAction>
-                </ListItem>
+
+                        <IconButton onClick={() => { this.props.onOrchestraRoleDeleteButtonClick(item.uid)}}>
+                            <DeleteIcon />
+                        </IconButton>
+                </React.Fragment>
+            )
+
+            let closedComponent = (
+                <React.Fragment>
+                    <ListItemIcon>
+                        <ScriptIcon />
+                    </ListItemIcon>
+                    <ListItemText primary={item.name} secondary={ToTitleCase(item.billing)} />
+                </React.Fragment>
+            )
+
+            let isOpen = item.uid === this.props.openInputId;
+
+            return (
+                <EditableListItem key={item.uid} isInputOpen={isOpen} onInputClose={() => { this.props.onListItemInputClose(item.uid, "orchestraRole")}}
+                openComponent={openComponent}
+                closedComponentSecondaryActions={closedComponentSecondaryActions}
+                closedComponent={closedComponent}/>
             )
         })
 
@@ -819,7 +834,7 @@ class AppDrawer extends React.Component {
                     </IconButton>
                 </Grid>
 
-                <List style={{width: '100%'}}>
+                <List style={{width: '100%', paddingLeft: '16px'}}>
                     {this.getOrchestraMembersJSX()}
                 </List>
             </React.Fragment>
@@ -828,19 +843,45 @@ class AppDrawer extends React.Component {
 
     getOrchestraMembersJSX() {
         let jsx = this.props.orchestraMembers.map( item => {
-            return (
-                <ListItem key={item.uid}>
+
+            let isInputOpen = item.uid === this.props.openInputId;
+
+            let closedComponent = (
+                <React.Fragment>
                     <ListItemIcon>
                         <PersonIcon />
                     </ListItemIcon>
-                    <TextField defaultValue={item.name} placeholder="Orchestra Member Name"
-                    onBlur={(e) => {this.props.onOrchestraMemberNameChange(item.uid, e.target.value)}}/>
-                    <ListItemSecondaryAction>
-                        <IconButton onClick={() => {this.props.onOrchestraMemberDeleteButtonClick(item.uid)}}>
-                            <DeleteIcon/>
-                        </IconButton>
-                    </ListItemSecondaryAction>
-                </ListItem>
+
+                    <ListItemText primary={item.name} />
+                </React.Fragment>
+
+            )
+
+            let closedComponentSecondaryActions = (
+                <React.Fragment>
+                    <IconButton onClick={() => { this.props.onEditListItemButtonClick(item.uid, "orchestraMember") }}>
+                        <EditIcon />
+                    </IconButton>
+
+                    <IconButton onClick={() => { this.props.onOrchestraMemberDeleteButtonClick(item.uid) }}>
+                        <DeleteIcon />
+                    </IconButton>
+                </React.Fragment>
+            )
+
+            
+            let openComponent = (
+                <TextField autoFocus defaultValue={item.name} label="Name"
+                    onChange={(e) => {this.props.onOrchestraMemberNameChange(item.uid, e.target.value)}}/>
+            )
+
+            return (
+                <EditableListItem key={item.uid} onInputClose={() => { this.props.onListItemInputClose(item.uid, "orchestraMember")}}
+                isInputOpen={isInputOpen}
+                openComponent={openComponent}
+                closedComponent={closedComponent}
+                closedComponentSecondaryActions={closedComponentSecondaryActions}
+                />
             )
         })
 
@@ -861,7 +902,7 @@ class AppDrawer extends React.Component {
                     </IconButton>
                 </Grid>
                
-                <List style={{ width: '100%' }}>
+                <List style={{ width: '100%', paddingLeft: '16px' }}>
                     { this.getCastMembersJSX() }
                 </List>
             </React.Fragment>
@@ -878,7 +919,7 @@ class AppDrawer extends React.Component {
                 </Grid>
                 
 
-                <List style={{ width: '100%'}}>
+                <List style={{ width: '100%', paddingLeft: '16px'}}>
                     {this.getRolesJSX()}
                 </List>
             </React.Fragment>
@@ -900,12 +941,43 @@ class AppDrawer extends React.Component {
         })
 
         let individualRolesJSX = individualRoles.map( item => {
+            let openComponent = (
+                <RoleOpen key={item.uid} name={item.name} displayedName={item.displayedName} billing={item.billing}
+                onNameChange={(e) => { this.props.onRoleNameChange(item.uid, e.target.value) }}
+                onDisplayedNameChange={(e) => { this.props.onRoleDisplayedNameChange(item.uid, e.target.value) }}
+                onBillingChange={(e) => { this.props.onRoleBillingChange(item.uid, e.target.value) }}
+                />
+            )
+
+            let closedComponentSecondaryActions = (
+                <React.Fragment>
+                        <IconButton onClick={() => { this.props.onEditListItemButtonClick(item.uid, "role")}}>
+                            <EditIcon/>
+                        </IconButton>
+
+                        <IconButton onClick={() => { this.props.onDeleteRoleButtonClick(item.uid)}}>
+                            <DeleteIcon />
+                        </IconButton>
+                </React.Fragment>
+            )
+
+            let closedComponent = (
+                <React.Fragment>
+                    <ListItemIcon>
+                        <ScriptIcon />
+                    </ListItemIcon>
+                    <ListItemText primary={item.name} secondary={ToTitleCase(item.billing)} />
+                    <DisplayedName name={item.name} displayedName={item.displayedName}/>
+                </React.Fragment>
+            )
+
+            let isOpen = item.uid === this.props.openInputId;
+
             return (
-                <RoleListItem key={item.uid} name={item.name} displayedName={item.displayedName} onRoleNameChange={(newValue) => {this.props.onRoleNameChange(item.uid, newValue)}}
-                        onDeleteButtonClick={() => {this.props.onDeleteRoleButtonClick(item.uid)}}
-                        onDisplayedNameChange={(newValue) => {this.props.onRoleDisplayedNameChange(item.uid, newValue)}}
-                        onBillingChange={(newValue) => {this.props.onRoleBillingChange(item.uid, newValue)}}
-                        billing={item.billing}/>
+                <EditableListItem key={item.uid} isInputOpen={isOpen} onInputClose={() => { this.props.onListItemInputClose(item.uid, "role")}}
+                openComponent={openComponent}
+                closedComponentSecondaryActions={closedComponentSecondaryActions}
+                closedComponent={closedComponent}/>
             )
         })
 
@@ -916,12 +988,43 @@ class AppDrawer extends React.Component {
                 }
 
                 else {
+                    let openComponent = (
+                        <RoleOpen key={role.uid} name={role.name} displayedName={role.displayedName} billing={role.billing}
+                        onNameChange={(e) => { this.props.onRoleNameChange(role.uid, e.target.value) }}
+                        onDisplayedNameChange={(e) => { this.props.onRoleDisplayedNameChange(role.uid, e.target.value) }}
+                        onBillingChange={(e) => { this.props.onRoleBillingChange(role.uid, e.target.value) }}
+                        />
+                    )
+        
+                    let closedComponentSecondaryActions = (
+                        <React.Fragment>
+                                <IconButton onClick={() => { this.props.onEditListItemButtonClick(role.uid, "role")}}>
+                                    <EditIcon/>
+                                </IconButton>
+        
+                                <IconButton onClick={() => { this.props.onDeleteRoleButtonClick(role.uid)}}>
+                                    <DeleteIcon />
+                                </IconButton>
+                        </React.Fragment>
+                    )
+        
+                    let closedComponent = (
+                        <React.Fragment>
+                            <ListItemIcon>
+                                <ScriptIcon />
+                            </ListItemIcon>
+                            <ListItemText primary={role.name} secondary={ToTitleCase(role.billing)} />
+                            <DisplayedName name={role.name} displayedName={role.displayedName}/>
+                        </React.Fragment>
+                    )
+        
+                    let isOpen = role.uid === this.props.openInputId;
+        
                     return (
-                        <RoleListItem inset={true} key={role.uid} name={role.name} displayedName={role.displayedName} onRoleNameChange={(newValue) => {this.props.onRoleNameChange(role.uid, newValue)}}
-                        onDeleteButtonClick={() => {this.props.onDeleteRoleButtonClick(role.uid)}}
-                        onDisplayedNameChange={(newValue) => {this.props.onRoleDisplayedNameChange(role.uid, newValue)}}
-                        onBillingChange={(newValue) => {this.props.onRoleBillingChange(role.uid, newValue)}}
-                        billing={role.billing}/>
+                        <EditableListItem inset={true} key={role.uid} isInputOpen={isOpen} onInputClose={() => { this.props.onListItemInputClose(role.uid, "role")}}
+                        openComponent={openComponent}
+                        closedComponentSecondaryActions={closedComponentSecondaryActions}
+                        closedComponent={closedComponent}/>
                     )
                 }
             })
@@ -936,7 +1039,6 @@ class AppDrawer extends React.Component {
             )
             
         })
-
 
         return [
             ...[(<ListSubheader key="individualroles"> Individual Roles </ListSubheader>)],
@@ -958,7 +1060,7 @@ class AppDrawer extends React.Component {
 
             let closedComponentSecondaryActions = (
                 <React.Fragment>
-                    <IconButton onClick={() => { this.props.onCastMemberEditButtonClick(item.uid) }}>
+                    <IconButton onClick={() => { this.props.onEditListItemButtonClick(item.uid, "castMember") }}>
                         <EditIcon />
                     </IconButton>
 
@@ -976,12 +1078,11 @@ class AppDrawer extends React.Component {
             )
 
             return (
-                <EditableListItem key={item.uid} onInputClose={() => { this.props.onCastMemberEditInputClose(item.uid)}}
+                <EditableListItem key={item.uid} onInputClose={() => { this.props.onListItemInputClose(item.uid, "castMember")}}
                 isInputOpen={isInputOpen}
                 openComponent={openComponent}
                 closedComponent={closedComponent}
                 closedComponentSecondaryActions={closedComponentSecondaryActions}
-                onClose={() => { this.props.onCastMemberEditInputClose(item.uid)}}
                 />
             )
         })
@@ -1012,7 +1113,7 @@ class AppDrawer extends React.Component {
 
                 let closedComponentSecondaryActions = (
                     <React.Fragment>
-                    <IconButton onClick={() => { this.props.onCastMemberEditButtonClick(castMember.uid) }}>
+                    <IconButton onClick={() => { this.props.onEditListItemButtonClick(castMember.uid, "castMember") }}>
                         <EditIcon />
                     </IconButton>
 
@@ -1023,12 +1124,12 @@ class AppDrawer extends React.Component {
                 )
 
                 return (
-                    <EditableListItem key={castMember.uid} onInputClose={() => { this.props.onCastMemberEditInputClose(castMember.uid)}}
+                    <EditableListItem key={castMember.uid} onInputClose={() => { this.props.onListItemInputClose(castMember.uid, "castMember")}}
                     isInputOpen={isInputOpen}
                     openComponent={openComponent}
                     closedComponent={closedComponent}
                     closedComponentSecondaryActions={closedComponentSecondaryActions}
-                    onClose={() => { this.props.onCastMemberEditInputClose(castMember.uid)}}
+                    
                     />
                 )
             })

@@ -141,9 +141,10 @@ class App extends Component {
           onMusicianFontStyleChange={this.props.onMusicianFontStyleChange}
           onReorderSlideButtonClick={this.props.onReorderSlideButtonClick}
           onHoldTimeChange={this.props.onHoldTimeChange}
-          onCastMemberEditButtonClick={this.props.onCastMemberEditButtonClick}
+          onEditListItemButtonClick={this.props.onEditListItemButtonClick}
           openInputId={this.props.openInputId}
-          onCastMemberEditInputClose={this.props.onCastMemberEditInputClose}/>
+          onListItemInputClose={this.props.onListItemInputClose}
+          onRoleEditButtonClick={this.props.onRoleEditButtonClick}/>
         </div>
 
         <div className="SlidePreviewContainer" >

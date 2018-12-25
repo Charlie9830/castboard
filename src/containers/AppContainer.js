@@ -168,8 +168,8 @@ class AppContainer extends React.Component {
         this.packageStateForRemote = this.packageStateForRemote.bind(this);
         this.setRemoteServerStatusSnackbar = this.setRemoteServerStatusSnackbar.bind(this);
         this.handleRemoteServerStatusSnackbarClose = this.handleRemoteServerStatusSnackbarClose.bind(this);
-        this.handleCastMemberEditButtonClick = this.handleCastMemberEditButtonClick.bind(this);
-        this.handleCastMemberEditInputClose = this.handleCastMemberEditInputClose.bind(this);
+        this.handleEditListItemButtonClick= this.handleEditListItemButtonClick.bind(this);
+        this.handleListItemInputClose = this.handleListItemInputClose.bind(this);
     }
 
     componentDidMount() {
@@ -412,19 +412,21 @@ class AppContainer extends React.Component {
                         isInPresentationMode={this.state.isInPresentationMode}
                         onRemoteServerStatusSnackbarClose={this.handleRemoteServerStatusSnackbarClose}
                         remoteServerStatusSnackbar={this.state.remoteServerStatusSnackbar}
-                        onCastMemberEditButtonClick={this.handleCastMemberEditButtonClick}
+                        onEditListItemButtonClick={this.handleEditListItemButtonClick}
                         openInputId={this.state.openInputId}
-                        onCastMemberEditInputClose={this.handleCastMemberEditInputClose}/>
+                        onCastMemberEditInputClose={this.handleCastMemberEditInputClose}
+                        onListItemInputClose={this.handleListItemInputClose}
+                        />
                 </AppContext.Provider>
             </MuiThemeProvider>
         )
     }
 
-    handleCastMemberEditInputClose(uid) {
+    handleListItemInputClose(uid, type) {
         this.setState({ openInputId: -1 });
     }
 
-    handleCastMemberEditButtonClick(uid) {
+    handleEditListItemButtonClick(uid, type) {
         this.setState({ openInputId: uid });
     }
 
@@ -933,7 +935,10 @@ class AppContainer extends React.Component {
 
         orchestraRoles.push(newOrchestraRole);
 
-        this.setState({orchestraRoles: orchestraRoles});
+        this.setState({
+            orchestraRoles: orchestraRoles,
+            openInputId: newOrchestraRole.uid,
+        });
 
         // Handle Database.
         mainDB.orchestraRoles.add(newOrchestraRole).then( () => {
@@ -1104,7 +1109,10 @@ class AppContainer extends React.Component {
 
         roles.push(newRole);
 
-        this.setState({roles: roles });
+        this.setState({
+            roles: roles,
+            openInputId: newRole.uid
+         });
 
         // Add to DB
         mainDB.roles.add(newRole).then( () => {
@@ -1760,7 +1768,10 @@ class AppContainer extends React.Component {
 
         roles.push(newRole);
 
-        this.setState({roles: roles});
+        this.setState({
+            roles: roles,
+            openInputId: newRole.uid,
+        });
 
         // Add to DB
         mainDB.roles.add(newRole).then( result => {
