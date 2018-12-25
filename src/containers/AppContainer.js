@@ -23,6 +23,7 @@ import CastChangeEntryFactory from '../factories/CastChangeEntryFactory';
 import OrchestraMemberFactory from '../factories/OrchestraMemberFactory';
 import OrchestraRoleFactory from '../factories/OrchestraRoleFactory';
 import OrchestraRowFactory from '../factories/OrchestraRowFactory';
+import CreateThumbnailAsync from '../utilties/CreateThumbnailAsync';
 
 const mainDB = new Dexie('castboardMainDB');
 mainDB.version(1).stores({
@@ -1694,19 +1695,25 @@ class AppContainer extends React.Component {
                 
                 jetpack.readAsync(filePath, "buffer").then( result => {
                     let base64Headshot = result.toString('base64');
-                    mainDB.castMembers.update(uid, { headshot: base64Headshot }).then( dbUpdateResult => {
 
+                    CreateThumbnailAsync(base64Headshot).then( thumbnail => {
+                        mainDB.castMembers.update(uid, { headshot: base64Headshot, thumbnailUrl: thumbnail }).then( dbUpdateResult => {
+
+                        })
+    
+                        // Update State.
+                        var castMembers = [...this.state.castMembers];
+                        var castMember = castMembers.find(item => {
+                            return item.uid === uid;
+                        })
+    
+                        castMember.headshot = base64Headshot;
+                        castMember.thumbnailUrl = thumbnail;
+    
+                        this.setState({castMembers: castMembers});
                     })
 
-                    // Update State.
-                    var castMembers = [...this.state.castMembers];
-                    var castMember = castMembers.find(item => {
-                        return item.uid === uid;
-                    })
-
-                    castMember.headshot = base64Headshot;
-
-                    this.setState({castMembers: castMembers});
+                    
                 })
             }
             

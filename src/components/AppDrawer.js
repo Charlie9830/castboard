@@ -59,7 +59,7 @@ let DisplayedName = (props) => {
 let CastMemberClosed = (props) => {
     return (
         <React.Fragment>
-        <HeadshotListItemIcon uid={props.uid} headshot={props.headshot} billing={props.billing} />
+        <HeadshotListItemIcon uid={props.uid} headshotUrl={props.headshot} billing={props.billing} />
         <Typography> {props.name} </Typography>
     </React.Fragment>
     )
@@ -99,7 +99,7 @@ let RoleOpen = (props) => {
 }
 
 let HeadshotListItemIcon = (props) => {
-    if (props.headshot === undefined) {
+    if (props.headshotUrl === undefined || props.headshotUrl === "") {
         return (
             <ListItemIcon>
                 <PersonIcon/>
@@ -110,7 +110,7 @@ let HeadshotListItemIcon = (props) => {
     else {
         return (
             <ListItemIcon>
-                <Avatar src={'data:image/jpg;base64,' + props.headshot }/>
+                <Avatar src={props.headshotUrl}/>
             </ListItemIcon>
             
         )
@@ -1056,7 +1056,7 @@ class AppDrawer extends React.Component {
         let ungroupedCastJSX = ungroupedCast.map( item => {
             let isInputOpen = item.uid === this.props.openInputId;
 
-            let closedComponent = <CastMemberClosed uid={item.uid} headshot={item.headshot} billing={item.billing} name={item.name}/>
+            let closedComponent = <CastMemberClosed uid={item.uid} headshot={item.thumbnailUrl} billing={item.billing} name={item.name}/>
 
             let closedComponentSecondaryActions = (
                 <React.Fragment>
