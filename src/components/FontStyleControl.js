@@ -33,6 +33,14 @@ let FontSelector = (props) => {
     )
 }
 
+let CasingCheckbox = (props) => {
+    return (
+        <FormControlLabel label="Uppercase" 
+        control={<Checkbox checked={props.checked} onChange={props.onChange}/>}
+        />
+    )
+}
+
 let BoldCheckbox = (props) => {
     return (
         <FormControlLabel label="Bold" 
@@ -65,6 +73,7 @@ class FontStyleControl extends React.Component {
         this.handleItalicsChange = this.handleItalicsChange.bind(this);
         this.handleCopyFontStyleButtonClick = this.handleCopyFontStyleButtonClick.bind(this);
         this.handlePasteFontStyleButtonClick = this.handlePasteFontStyleButtonClick.bind(this);
+        this.handleCasingChange = this.handleCasingChange.bind(this);
     }
 
     render() {
@@ -74,6 +83,7 @@ class FontStyleControl extends React.Component {
         let fontSize = this.props.fontStyle !== undefined  ? this.props.fontStyle.fontSize : 12;
         let isBold = this.props.fontStyle !== undefined ? this.props.fontStyle.bold : false;
         let isItalics =  this.props.fontStyle !== undefined ? this.props.fontStyle.italics : false;
+        let isUppercase = this.props.fontStyle !== undefined ? this.props.fontStyle.uppercase : false;
         let color = this.props.fontStyle !== undefined ? this.props.fontStyle.color : "#000000";
 
         return (
@@ -94,6 +104,10 @@ class FontStyleControl extends React.Component {
                         <ColorPicker defaultValue={color} onChange={this.handleColorChange} />
                     </div>
 
+                    <div className="FontStylePickerCasing">
+                        <CasingCheckbox checked={isUppercase} onChange={this.handleCasingChange}/>
+                    </div>
+
                     <div className="FontStylePickerItalic">
                         <ItalicsCheckbox onChange={this.handleItalicsChange} checked={isItalics} />
                     </div>
@@ -111,6 +125,15 @@ class FontStyleControl extends React.Component {
                     </div>
                 </div>
         )
+    }
+
+    handleCasingChange(e) {
+        let value = e.target.checked;
+
+        let newFontStyle = {...this.props.fontStyle};
+        newFontStyle.uppercase = value;
+
+        this.props.onChange(newFontStyle);
     }
 
     handleCopyFontStyleButtonClick() {

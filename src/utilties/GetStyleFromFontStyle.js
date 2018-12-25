@@ -1,6 +1,7 @@
 let GetStyleFromFontStyle = (fontStyle) => {
     let fontWeight = fontStyle.bold ? '700' : '400';
     let cssFontStyle = fontStyle.italics ? 'italic' : 'normal';
+    let textTransform = fontStyle.uppercase ? 'uppercase' : 'none';
 
     return {
         fontFamily: fontStyle.fontFamily,
@@ -8,6 +9,7 @@ let GetStyleFromFontStyle = (fontStyle) => {
         fontWeight: fontWeight,
         fontStyle: cssFontStyle,
         color: fontStyle.color,
+        textTransform: textTransform,
     }
 }
 

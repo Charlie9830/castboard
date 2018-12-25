@@ -6,9 +6,13 @@
     grid-template-columns: 120px min-content min-content auto;
     grid-template-areas:
     'FontFamily FontSize Bold'
-    'Color          .    Italic'
+    'Color      Casing    Italic'
     'Divider    Divider  Divider';
     grid-column-gap: 10px;
+}
+
+.FontStylePickerCasing {
+    grid-area: Casing;
 }
 
 .FontStylePickerCopyStyle {

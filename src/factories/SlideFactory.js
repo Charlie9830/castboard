@@ -3,7 +3,7 @@ import FontStyleFactory from './FontStyleFactory';
 import CastRowFactory from './CastRowFactory';
 import OrchestraRowFactory from './OrchestraRowFactory';
 
-let defaultFont = FontStyleFactory('Sans Serif', 12, false, false);
+let defaultFont = FontStyleFactory('Sans Serif', 12, false, false, '#000', false);
 
 let SlideFactory = (number) => {
     return {
