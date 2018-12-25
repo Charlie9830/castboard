@@ -92,6 +92,7 @@ class AppContainer extends React.Component {
                 open: false,
                 message: "",
             },
+            openInputId: -1,
         }
 
         this.presentationInterval = null;
@@ -167,6 +168,8 @@ class AppContainer extends React.Component {
         this.packageStateForRemote = this.packageStateForRemote.bind(this);
         this.setRemoteServerStatusSnackbar = this.setRemoteServerStatusSnackbar.bind(this);
         this.handleRemoteServerStatusSnackbarClose = this.handleRemoteServerStatusSnackbarClose.bind(this);
+        this.handleCastMemberEditButtonClick = this.handleCastMemberEditButtonClick.bind(this);
+        this.handleCastMemberEditInputClose = this.handleCastMemberEditInputClose.bind(this);
     }
 
     componentDidMount() {
@@ -278,8 +281,6 @@ class AppContainer extends React.Component {
 
         let winBounds = remote.getCurrentWindow().getBounds();
         let activeScreen = remote.screen.getDisplayNearestPoint({x: winBounds.x, y: winBounds.y});
-
-        console.log(activeScreen.scaleFactor);
 
         // Register Main Process Events.
         ipcRenderer.on('get-data', () => {
@@ -410,10 +411,21 @@ class AppContainer extends React.Component {
                         onTogglePresentationMode={this.handleTogglePresentationMode}
                         isInPresentationMode={this.state.isInPresentationMode}
                         onRemoteServerStatusSnackbarClose={this.handleRemoteServerStatusSnackbarClose}
-                        remoteServerStatusSnackbar={this.state.remoteServerStatusSnackbar}/>
+                        remoteServerStatusSnackbar={this.state.remoteServerStatusSnackbar}
+                        onCastMemberEditButtonClick={this.handleCastMemberEditButtonClick}
+                        openInputId={this.state.openInputId}
+                        onCastMemberEditInputClose={this.handleCastMemberEditInputClose}/>
                 </AppContext.Provider>
             </MuiThemeProvider>
         )
+    }
+
+    handleCastMemberEditInputClose(uid) {
+        this.setState({ openInputId: -1 });
+    }
+
+    handleCastMemberEditButtonClick(uid) {
+        this.setState({ openInputId: uid });
     }
 
     handleRemoteServerStatusSnackbarClose() {

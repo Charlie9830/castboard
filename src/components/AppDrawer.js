@@ -6,6 +6,7 @@ import CastGroup from './CastGroup';
 import CastMemberSelect from './CastMemberSelect';
 import OrchestraMemberSelect from './OrchestraMemberSelect';
 import CastGroupChooser from './CastGroupChooser';
+import CastMemberListItem from './CastMemberListItem';
 
 import GetRoleFromState from '../utilties/GetRoleFromState';
 
@@ -78,29 +79,7 @@ let RoleListItem = (props) => {
     )
 }
 
-let CastMemberListItem = (props) => {
-    return (
-        <ListItem style={{paddingLeft: props.inset === true ? "64px" : 'inherit'}}>
-            <HeadshotListItemIcon uid={props.uid} headshot={props.headshot} billing={props.billing} />
-            <Grid container
-                direction="row"
-                justify="flex-start">
-                <TextField style={{marginLeft: '16px'}}
-                 placeholder="Enter cast name..." defaultValue={props.name} onBlur={(e) => { props.onCastMemberNameChange(e.target.value) }} />
-                
-            </Grid>
 
-            <ListItemSecondaryAction>
-                <IconButton onClick={props.onAddHeadshotButtonClick}>
-                    <InsertPhotoIcon />
-                </IconButton>
-                <IconButton onClick={props.onCastMemberDeleteButtonClick}>
-                    <DeleteIcon />
-                </IconButton>
-            </ListItemSecondaryAction>
-        </ListItem>
-    )
-}
 
 let SlideTypeSelect = (props) => {
     return (
@@ -133,22 +112,6 @@ let OrchestraBillingSelect = (props) => {
             <MenuItem value="musician"> Musician </MenuItem>
         </Select>
     )
-}
-
-let HeadshotListItemIcon = (props) => {
-    if (props.headshot === undefined) {
-        return (
-            <ListItemIcon>
-                <PersonIcon/>
-            </ListItemIcon>
-        )
-    }
-
-    else {
-        return (
-            <Avatar src={'data:image/jpg;base64,' + props.headshot }/>
-        )
-    }
 }
 
 class AppDrawer extends React.Component {
@@ -944,11 +907,16 @@ class AppDrawer extends React.Component {
         })
 
         let ungroupedCastJSX = ungroupedCast.map( item => {
+            let isInputOpen = item.uid === this.props.openInputId;
+
             return (
                 <CastMemberListItem key={item.uid} headshot={item.headshot} name={item.name} uid={item.uid}
-                    onCastMemberNameChange={(newValue) => { this.props.onCastMemberNameChange(item.uid, newValue) }}
+                    onNameChange={(newValue) => { this.props.onCastMemberNameChange(item.uid, newValue) }}
                     onAddHeadshotButtonClick={() => { this.props.onAddHeadshotButtonClick(item.uid) }}
-                    onCastMemberDeleteButtonClick={() => { this.props.onCastMemberDeleteButtonClick(item.uid) }}
+                    onDeleteButtonClick={() => { this.props.onCastMemberDeleteButtonClick(item.uid) }}
+                    onEditButtonClick={() => { this.props.onCastMemberEditButtonClick(item.uid)}}
+                    onInputClose={() => { this.props.onCastMemberEditInputClose(item.uid)}}
+                    isInputOpen={isInputOpen}
                 />
             )
         })

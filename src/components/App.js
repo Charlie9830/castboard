@@ -140,7 +140,10 @@ class App extends Component {
           onAssociateFontStyleChange={this.props.onAssociateFontStyleChange}
           onMusicianFontStyleChange={this.props.onMusicianFontStyleChange}
           onReorderSlideButtonClick={this.props.onReorderSlideButtonClick}
-          onHoldTimeChange={this.props.onHoldTimeChange}/>
+          onHoldTimeChange={this.props.onHoldTimeChange}
+          onCastMemberEditButtonClick={this.props.onCastMemberEditButtonClick}
+          openInputId={this.props.openInputId}
+          onCastMemberEditInputClose={this.props.onCastMemberEditInputClose}/>
         </div>
 
         <div className="SlidePreviewContainer" >
