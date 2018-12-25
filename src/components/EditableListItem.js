@@ -5,9 +5,6 @@ class EditableListItem extends React.Component {
     constructor(props) {
         super(props);
 
-        // Refs.
-        this.listItemRef = React.createRef();
-
         // State.
         this.state = {
             isMouseOver: false,
@@ -51,13 +48,10 @@ class EditableListItem extends React.Component {
         
 
         return (
-            <div ref={this.listItemRef}>
                 <ListItem onMouseOver={() => { this.setState({ isMouseOver: true }) }} onMouseLeave={() => { this.setState({ isMouseOver: false }) }}
                     style={{ paddingLeft: this.props.inset === true ? "64px" : 'inherit' }}>
                     {listItemContents}
-                </ListItem>
-            </div>
-            
+                </ListItem>            
         )
     } 
 
