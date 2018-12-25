@@ -4,4 +4,4 @@ node_modules/
 dist/
 builds/
 src/assets/media
-remote/
+src/server/remote/

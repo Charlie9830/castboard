@@ -5,6 +5,7 @@ const EventTypes = require('./EventTypes');
 const App = express();
 const Router = express.Router();
 const Port = 8081;
+const path = require('path');
 
 
 
@@ -25,7 +26,7 @@ class Server extends EventEmitter {
             next();
           });
 
-        App.use('/', express.static('remote'));
+        App.use('/', express.static(path.join(__dirname, 'remote')));
         App.use(bodyParser.urlencoded({ extended: true }));
         App.use(bodyParser.json());
 
