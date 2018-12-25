@@ -1,7 +1,9 @@
 let CreateThumbnailAsync = (base64Data) => {
     return new Promise((resolve, reject) => {
-        let targetImageWidth = 48;
+        // Assign the base64Data to an Image DOM Object. Then, once it has loaded, draw it onto a Canvas DOM Object at a reduced
+        // size (Whilst preserving the aspect ratio). Then grab the Base64Url from the Canvas and Return it.
 
+        let targetImageWidth = 48;
 
         let image = new Image();
         image.src = 'data:image/jpg;base64,' + base64Data;
