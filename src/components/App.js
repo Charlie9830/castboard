@@ -145,6 +145,8 @@ class App extends Component {
 
         <div className="SlidePreviewContainer" >
 
+          {this.props.selectedSlideId === -1 && <Typography variant="subheading"> No Slide Selected </Typography>}
+          
           <SlideSizer>
             {/* Any Changes to Props for SlideRenderer should be Reflected in the other Instance of SlideRenderer.  */}
             <SlideRenderer theme={this.props.theme} slide={this.getCurrentSlide(this.props.slides, this.props.selectedSlideId)}

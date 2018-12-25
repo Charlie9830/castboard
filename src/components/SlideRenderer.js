@@ -8,7 +8,7 @@ import { Typography } from '@material-ui/core';
 
 let SlideRenderer = (props) => {
     if (props.slide === null) {
-        return <Typography variant="subheading"> No Slide Selected </Typography>
+        return null;
     }
 
     switch (props.slide.type) {

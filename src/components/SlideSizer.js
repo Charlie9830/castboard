@@ -1,5 +1,7 @@
 import React from 'react';
 
+const DrawerWidth = 750;
+
 class SlideSizer extends React.Component {
     constructor(props) {
         super(props);
@@ -22,7 +24,7 @@ class SlideSizer extends React.Component {
     }
 
     render() {
-        let  availableWidth = this.state.innerWidth - 600;
+        let  availableWidth = this.state.innerWidth - DrawerWidth;
 
         let transformContainerStyle = {
             width: '1920px',

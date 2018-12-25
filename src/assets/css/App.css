@@ -17,7 +17,7 @@ body {
   height: 100vh;
   width: 100vw;
   overflow: hidden;
-  grid-template-columns: [Drawer]600px [SlidePreview]1fr;
+  grid-template-columns: [Drawer]750px [SlidePreview]1fr; /* IF YOU CHANGE DRAWER WIDTH UPDATE IT IN THE SLIDESIZER COMPONENT */
   grid-template-rows: [AppBar]max-content [App]auto;
   grid-template-areas:
   "AppBarArea AppBarArea"
