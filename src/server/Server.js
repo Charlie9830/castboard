@@ -25,6 +25,7 @@ class Server extends EventEmitter {
             next();
           });
 
+        App.use('/', express.static('remote'));
         App.use(bodyParser.urlencoded({ extended: true }));
         App.use(bodyParser.json());
 
@@ -64,9 +65,6 @@ class Server extends EventEmitter {
     }
 
     handleRootRequest(req, res) {
-        res.json({ message: 'hooray! welcome to our api!' });
-
-        this.emit(EventTypes.connectionReceived);
     }
 
     getDataFromElectronAsync() {
