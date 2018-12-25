@@ -1146,7 +1146,10 @@ class AppContainer extends React.Component {
         let newCastMember = CastMemberFactory("", groupId);
         castMembers.push(newCastMember);
 
-        this.setState({castMembers: castMembers });
+        this.setState({
+            castMembers: castMembers,
+            openInputId: newCastMember.uid
+        });
 
         // Add to DB
         mainDB.castMembers.add(newCastMember);
@@ -1807,7 +1810,9 @@ class AppContainer extends React.Component {
 
         castMember.name = newValue;
 
-        this.setState({castMembers: castMembers});
+        this.setState({
+            castMembers: castMembers,
+        });
 
         // Update DB.
         mainDB.castMembers.update(castMember.uid, { name: newValue }).then( result => {
@@ -1820,7 +1825,10 @@ class AppContainer extends React.Component {
         let newCastMember = CastMemberFactory("", "-1");
         castMembers.push(newCastMember);
 
-        this.setState({castMembers: castMembers });
+        this.setState({
+            castMembers: castMembers,
+            openInputId: newCastMember.uid
+         });
 
         // Add to DB
         mainDB.castMembers.add(newCastMember);

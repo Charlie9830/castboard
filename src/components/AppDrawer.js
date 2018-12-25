@@ -6,7 +6,7 @@ import CastGroup from './CastGroup';
 import CastMemberSelect from './CastMemberSelect';
 import OrchestraMemberSelect from './OrchestraMemberSelect';
 import CastGroupChooser from './CastGroupChooser';
-import CastMemberListItem from './CastMemberListItem';
+import EditableListItem from './EditableListItem';
 
 import GetRoleFromState from '../utilties/GetRoleFromState';
 
@@ -29,6 +29,7 @@ import OpenIcon from '@material-ui/icons/FolderOpen';
 import ArrowUpIcon from '@material-ui/icons/ArrowUpward';
 import ArrowDownIcon from '@material-ui/icons/ArrowDownward';
 import MusicNoteIcon from '@material-ui/icons/MusicNote';
+import EditIcon from '@material-ui/icons/Edit';
 
 
 import GetCastIdFromMap from '../utilties/GetCastIdFromMap';
@@ -43,6 +44,49 @@ let CollapseHorizontalIcon = (props) => {
             <path d="M19 2h-4.18C14.4.84 13.3 0 12 0c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm7 18H5V4h2v3h10V4h2v16z"/>
         </SvgIcon>
     )
+}
+
+let CastMemberClosed = (props) => {
+    return (
+        <React.Fragment>
+        <HeadshotListItemIcon uid={props.uid} headshot={props.headshot} billing={props.billing} />
+        <Typography> {props.name} </Typography>
+    </React.Fragment>
+    )
+}
+
+let CastMemberOpen = (props) => {
+    return (
+        <React.Fragment>
+            <TextField autoFocus style={{ marginLeft: '16px' }}
+                placeholder="Enter cast name..." defaultValue={props.name}
+                onChange={props.onChange}
+                />
+
+            <IconButton onClick={props.onAddHeadshotButtonClick}>
+                <InsertPhotoIcon />
+            </IconButton>
+        </React.Fragment>
+    )
+}
+
+let HeadshotListItemIcon = (props) => {
+    if (props.headshot === undefined) {
+        return (
+            <ListItemIcon>
+                <PersonIcon/>
+            </ListItemIcon>
+        )
+    }
+
+    else {
+        return (
+            <ListItemIcon>
+                <Avatar src={'data:image/jpg;base64,' + props.headshot }/>
+            </ListItemIcon>
+            
+        )
+    }
 }
 
 let ExpandHorizontalIcon = (props) => {
@@ -910,14 +954,34 @@ class AppDrawer extends React.Component {
         let ungroupedCastJSX = ungroupedCast.map( item => {
             let isInputOpen = item.uid === this.props.openInputId;
 
+            let closedComponent = <CastMemberClosed uid={item.uid} headshot={item.headshot} billing={item.billing} name={item.name}/>
+
+            let closedComponentSecondaryActions = (
+                <React.Fragment>
+                    <IconButton onClick={() => { this.props.onCastMemberEditButtonClick(item.uid) }}>
+                        <EditIcon />
+                    </IconButton>
+
+                    <IconButton onClick={() => { this.props.onCastMemberDeleteButtonClick(item.uid) }}>
+                        <DeleteIcon />
+                    </IconButton>
+                </React.Fragment>
+            )
+
+            
+            let openComponent = (
+                <CastMemberOpen name={item.name}
+                    onChange={(e) => { this.props.onCastMemberNameChange(item.uid, e.target.value) }}
+                    onAddHeadshotButtonClick={() => { this.props.onAddHeadshotButtonClick(item.uid) }} />
+            )
+
             return (
-                <CastMemberListItem key={item.uid} headshot={item.headshot} name={item.name} uid={item.uid}
-                    onNameChange={(newValue) => { this.props.onCastMemberNameChange(item.uid, newValue) }}
-                    onAddHeadshotButtonClick={() => { this.props.onAddHeadshotButtonClick(item.uid) }}
-                    onDeleteButtonClick={() => { this.props.onCastMemberDeleteButtonClick(item.uid) }}
-                    onEditButtonClick={() => { this.props.onCastMemberEditButtonClick(item.uid)}}
-                    onInputClose={() => { this.props.onCastMemberEditInputClose(item.uid)}}
-                    isInputOpen={isInputOpen}
+                <EditableListItem key={item.uid} onInputClose={() => { this.props.onCastMemberEditInputClose(item.uid)}}
+                isInputOpen={isInputOpen}
+                openComponent={openComponent}
+                closedComponent={closedComponent}
+                closedComponentSecondaryActions={closedComponentSecondaryActions}
+                onClose={() => { this.props.onCastMemberEditInputClose(item.uid)}}
                 />
             )
         })
@@ -928,17 +992,43 @@ class AppDrawer extends React.Component {
 
         let groupJSX = this.props.castGroups.map( item => {
             let castMembersJSX = groupedCast.map( castMember => {
+                let isInputOpen = castMember.uid === this.props.openInputId;
+
                 if (castMember.groupId !== item.uid) {
                     return null;
                 }
 
+                let openComponent = (
+                    <CastMemberOpen name={castMember.name}
+                    onChange={(e) => { this.props.onCastMemberNameChange(castMember.uid, e.target.value) }}
+                    onKeyPress={(e) => { this.handleTextFieldKeyPress(e, this.props.onCastMemberNameChange, castMember.uid) }}
+                    onAddHeadshotButtonClick={() => { this.props.onAddHeadshotButtonClick(castMember.uid) }} />
+                )
+
+                let closedComponent = (
+                    <CastMemberClosed uid={castMember.uid} headshot={castMember.headshot}
+                     billing={castMember.billing} name={castMember.name}/>
+                )
+
+                let closedComponentSecondaryActions = (
+                    <React.Fragment>
+                    <IconButton onClick={() => { this.props.onCastMemberEditButtonClick(castMember.uid) }}>
+                        <EditIcon />
+                    </IconButton>
+
+                    <IconButton onClick={() => { this.props.onCastMemberDeleteButtonClick(castMember.uid) }}>
+                        <DeleteIcon />
+                    </IconButton>
+                </React.Fragment>
+                )
+
                 return (
-                    <CastMemberListItem inset={true} key={castMember.uid} inset headshot={castMember.headshot} name={castMember.name} uid={castMember.uid}
-                    billing={castMember.billing}
-                    onCastMemberNameChange={(newValue) => { this.props.onCastMemberNameChange(castMember.uid, newValue) }}
-                    onCastMemberBillingChange={(newValue) => { this.props.onCastMemberBillingChange(castMember.uid, newValue) }}
-                    onAddHeadshotButtonClick={() => { this.props.onAddHeadshotButtonClick(castMember.uid) }}
-                    onCastMemberDeleteButtonClick={() => { this.props.onCastMemberDeleteButtonClick(castMember.uid) }}
+                    <EditableListItem key={castMember.uid} onInputClose={() => { this.props.onCastMemberEditInputClose(castMember.uid)}}
+                    isInputOpen={isInputOpen}
+                    openComponent={openComponent}
+                    closedComponent={closedComponent}
+                    closedComponentSecondaryActions={closedComponentSecondaryActions}
+                    onClose={() => { this.props.onCastMemberEditInputClose(castMember.uid)}}
                     />
                 )
             })
@@ -959,6 +1049,12 @@ class AppDrawer extends React.Component {
             ...[(<ListSubheader key="castgroups" disableSticky> Cast Groups </ListSubheader>)],
             ...groupJSX
             ];
+    }
+
+    handleTextFieldKeyPress(e, callback, targetUid) {
+        if (e.key === "Enter") {
+            callback(targetUid, e.target.value);
+        }
     }
 }
 
