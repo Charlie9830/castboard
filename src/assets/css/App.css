@@ -31,7 +31,8 @@ body {
 
 .AppDrawerContainer {
   grid-area: DrawerArea;
-  overflow-y: auto;
+  overflow-y: scroll;
+  padding-bottom: 25px;
 }
 
 .SlidePreviewContainer {

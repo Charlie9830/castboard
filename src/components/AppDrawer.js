@@ -189,6 +189,7 @@ class AppDrawer extends React.Component {
                     {this.state.primaryTab === 1 && this.getCastChangeTabJSX()}
                     {this.state.primaryTab === 2 && this.getOrchestraChangeTabJSX()}
                     {this.state.primaryTab === 3 && this.getSlidesTabJSX()}
+                    
                 
             </Grid>
         )
@@ -953,9 +954,9 @@ class AppDrawer extends React.Component {
         })
 
         return [
-            ...[(<ListSubheader key="individualcast"> Individual Cast</ListSubheader>)],
+            ...[(<ListSubheader key="individualcast" disableSticky> Individual Cast</ListSubheader>)],
             ...ungroupedCastJSX,
-            ...[(<ListSubheader key="castgroups"> Cast Groups </ListSubheader>)],
+            ...[(<ListSubheader key="castgroups" disableSticky> Cast Groups </ListSubheader>)],
             ...groupJSX
             ];
     }
