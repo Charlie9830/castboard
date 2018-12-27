@@ -102,6 +102,7 @@ class AppContainer extends React.Component {
             },
             openInputId: -1,
             fonts: [],
+            generalSnackbar: { open: false, type: 'info', message: "", onClose: () => {} }
         }
 
         this.presentationInterval = null;
@@ -180,6 +181,7 @@ class AppContainer extends React.Component {
         this.handleEditListItemButtonClick= this.handleEditListItemButtonClick.bind(this);
         this.handleListItemInputClose = this.handleListItemInputClose.bind(this);
         this.handleAttachFontButtonClick = this.handleAttachFontButtonClick.bind(this);
+        this.postGeneralSnackbar = this.postGeneralSnackbar.bind(this);
     }
 
     componentDidMount() {
@@ -345,7 +347,6 @@ class AppContainer extends React.Component {
                 this.setState({
                     selectedSlideId: this.getPreviousSlideId(this.state.selectedSlideId, this.state.slides)
                 })
-
                 default:
                 break;
             }
@@ -443,6 +444,7 @@ class AppContainer extends React.Component {
                         onListItemInputClose={this.handleListItemInputClose}
                         onAttachFontButtonClick={this.handleAttachFontButtonClick}
                         fontNameDialog={this.state.fontNameDialog}
+                        generalSnackbar={this.state.generalSnackbar}
                         />
                 </AppContext.Provider>
             </MuiThemeProvider>
@@ -472,13 +474,12 @@ class AppContainer extends React.Component {
 
                         // Import to Document
                         this.importFontAsync(newFontObject).then(() => {
-
+                            // Add to Database.
+                            mainDB.fonts.add(newFontObject).then(() => {
+                                this.postGeneralSnackbar("info", `${newFontObject.familyName} imported successfully.`)
+                            })
+                            
                         })
-
-                        // Add to Database.
-                        mainDB.fonts.add(newFontObject).then( () => {
-
-                        }) 
                     }
 
                     let handleCancel = () => {
@@ -706,6 +707,8 @@ class AppContainer extends React.Component {
                 jetpack.readAsync(filePath, "json").then( result => {
                     if (result !== undefined) {
                         this.unpackageState(result);
+                        
+                        this.postGeneralSnackbar("info", "Show loaded successfully");
                     }
                 })
             }
@@ -721,7 +724,7 @@ class AppContainer extends React.Component {
         dialog.showSaveDialog(options, fileName =>  {
             if (fileName !== undefined) {
                 jetpack.writeAsync(fileName, this.packageState(this.state), {atomic: true}).then( () => {
-                    console.log("Saved");
+                    this.postGeneralSnackbar("info", "Show saved successfully");
                 })
             }
         });
@@ -1983,6 +1986,14 @@ class AppContainer extends React.Component {
         }
 
         return `url(${dataHeader}${fontObject.base64})`; // ${format};`;
+    }
+
+    postGeneralSnackbar(type, message) {
+        let onClose = () => {
+            this.setState({ generalSnackbar: { open: false, type: type, message: message, onClose: () => {} }});
+        } 
+
+        this.setState({ generalSnackbar: { open: true, type: type, message: message, onClose: onClose}})
     }
 }
 

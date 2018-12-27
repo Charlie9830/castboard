@@ -9,6 +9,7 @@ import '../assets/css/App.css';
 
 import { CssBaseline, AppBar, Toolbar, Typography, Button, Grid } from '@material-ui/core';
 import FontNameDialog from './FontNameDialog';
+import GeneralSnackbar from './GeneralSnackbar';
 
 class App extends Component {
   constructor(props) {
@@ -41,6 +42,9 @@ class App extends Component {
     return (
       <div className="App">
         <CssBaseline/>
+
+        <GeneralSnackbar open={this.props.generalSnackbar.open} message={this.props.generalSnackbar.message}
+        onClose={this.props.generalSnackbar.onClose}/>
 
         <FontStyleClipboardSnackbar open={this.props.isFontStyleClipboardSnackbarOpen}
          onClose={this.props.onFontStyleClipboardSnackbarClose}/>
