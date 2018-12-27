@@ -8,6 +8,7 @@ import { AppContext, AppContextDefaultValue } from '../contexts/AppContext';
 const { remote, ipcRenderer } = require('electron');
 const { dialog } = remote;
 const log = require('electron-log');
+import os from 'os';
 
 import { MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles';
 import PrimaryColor from '@material-ui/core/colors/blue';
@@ -406,6 +407,12 @@ class AppContainer extends React.Component {
                 break;
             }
         })
+
+        // Set Presentation Mode.
+        if (os.platform() === 'linux') {
+            // Very likely running on the Raspberry Pi. So put us into presentation mode immediately.
+            this.handleTogglePresentationMode();
+        }
     }
 
     render() {
