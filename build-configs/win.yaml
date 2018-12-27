@@ -1,0 +1,10 @@
+artifactName: '${name}.${ext}'
+directories:
+  output: ./builds
+files:
+  - ./dist/
+  - ./main.js
+  - ./src/server
+win:
+  target: dir
+asar: true
