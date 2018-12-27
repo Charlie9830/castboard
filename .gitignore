@@ -4,4 +4,5 @@ node_modules/
 dist/
 builds/
 src/assets/media
+src/assets/fonts
 src/server/remote/

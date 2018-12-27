@@ -1,7 +1,7 @@
 import React from 'react';
 import ColorPicker from './ColorPicker';
 import '../assets/css/FontStyleControl.css';
-import { Grid, FormControlLabel, TextField, Checkbox, Paper, Popover, IconButton, Typography, Button, SvgIcon } from '@material-ui/core';
+import { Grid, FormControlLabel, TextField, Checkbox, Paper, Popover, IconButton, Typography, Button, SvgIcon, MenuItem } from '@material-ui/core';
 import AppContext from '../contexts/AppContext';
 
 let PasteContentIcon = (props) => {

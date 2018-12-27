@@ -30,6 +30,7 @@ import ArrowUpIcon from '@material-ui/icons/ArrowUpward';
 import ArrowDownIcon from '@material-ui/icons/ArrowDownward';
 import MusicNoteIcon from '@material-ui/icons/MusicNote';
 import EditIcon from '@material-ui/icons/Edit';
+import AttachFileIcon from '@material-ui/icons/AttachFile';
 
 
 import GetCastIdFromMap from '../utilties/GetCastIdFromMap';
@@ -405,6 +406,20 @@ class AppDrawer extends React.Component {
                                             roleFontStyle={this.props.theme.musicianRoleFontStyle}
                                             onChange={this.props.onMusicianFontStyleChange}/>
                                         </ListItemSecondaryAction>
+                                    </ListItem>
+
+                                    <ListItem>
+                                        <ListItemText primary="Attach a Font File with the Document"
+                                        secondary="Font's not displaying properly on the Castboard? You may need to download and attach the font here.
+                                        Supports .ttf, .otf, .woff, .woff2 file formats.">
+                                        </ListItemText>
+
+                                        <ListItemSecondaryAction>
+                                            <IconButton onClick={this.props.onAttachFontButtonClick}>
+                                                <AttachFileIcon/>
+                                            </IconButton>
+                                        </ListItemSecondaryAction>
+
                                     </ListItem>
                                 </List>
                             </Grid>

@@ -8,6 +8,7 @@ import RemoteServerStatusSnackbar from './RemoteServerStatusSnackbar';
 import '../assets/css/App.css';
 
 import { CssBaseline, AppBar, Toolbar, Typography, Button, Grid } from '@material-ui/core';
+import FontNameDialog from './FontNameDialog';
 
 class App extends Component {
   constructor(props) {
@@ -49,6 +50,12 @@ class App extends Component {
         onChoose={this.props.roleSelectDialog.onChoose}
         onCancel={this.props.roleSelectDialog.onCancel}
         roles={this.props.roleSelectDialog.roles}/>
+
+        <FontNameDialog
+        open={this.props.fontNameDialog.open}
+        onContinue={this.props.fontNameDialog.onContinue}
+        onCancel={this.props.fontNameDialog.onCancel}
+        />
 
         <div className="AppBarContainer">
           <AppBar position="relative">
@@ -144,7 +151,8 @@ class App extends Component {
           onEditListItemButtonClick={this.props.onEditListItemButtonClick}
           openInputId={this.props.openInputId}
           onListItemInputClose={this.props.onListItemInputClose}
-          onRoleEditButtonClick={this.props.onRoleEditButtonClick}/>
+          onRoleEditButtonClick={this.props.onRoleEditButtonClick}
+          onAttachFontButtonClick={this.props.onAttachFontButtonClick}/>
         </div>
 
         <div className="SlidePreviewContainer" >

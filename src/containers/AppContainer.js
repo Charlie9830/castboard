@@ -24,6 +24,7 @@ import OrchestraMemberFactory from '../factories/OrchestraMemberFactory';
 import OrchestraRoleFactory from '../factories/OrchestraRoleFactory';
 import OrchestraRowFactory from '../factories/OrchestraRowFactory';
 import CreateThumbnailAsync from '../utilties/CreateThumbnailAsync';
+import FontObjectFactory from '../factories/FontObjectFactory';
 
 const mainDB = new Dexie('castboardMainDB');
 mainDB.version(1).stores({
@@ -37,6 +38,7 @@ mainDB.version(1).stores({
     theme: 'uid',
     orchestraMembers: 'uid',
     orchestraRoles: 'uid',
+    fonts: 'uid',
 });
 
 mainDB.on('populate', () => {
@@ -85,6 +87,11 @@ class AppContainer extends React.Component {
                 onChoose: null,
                 onCancel: null,
             },
+            fontNameDialog: {
+                open: false,
+                onContinue: null,
+                onCancel: null,
+            },
             isFontStyleClipboardSnackbarOpen: false,
             appContext: {...AppContextDefaultValue, setFontStyleClipboard: (newValue) => {this.handleSetFontStyleClipboard(newValue)} },
             isInPresentationMode: false,
@@ -94,6 +101,7 @@ class AppContainer extends React.Component {
                 message: "",
             },
             openInputId: -1,
+            fonts: [],
         }
 
         this.presentationInterval = null;
@@ -171,9 +179,25 @@ class AppContainer extends React.Component {
         this.handleRemoteServerStatusSnackbarClose = this.handleRemoteServerStatusSnackbarClose.bind(this);
         this.handleEditListItemButtonClick= this.handleEditListItemButtonClick.bind(this);
         this.handleListItemInputClose = this.handleListItemInputClose.bind(this);
+        this.handleAttachFontButtonClick = this.handleAttachFontButtonClick.bind(this);
     }
 
     componentDidMount() {
+        // Pull Down Fonts.
+        mainDB.fonts.toArray( result => {
+            if (result.length > 0) {
+                let fonts = [];
+                result.forEach( font => {
+                    fonts.push(font);
+                    this.importFontAsync(font).then( () => {
+
+                    })
+                })
+
+                this.setState({ fonts: fonts });
+            }
+        })
+
         // Pull Down Cast Members.
         mainDB.castMembers.toArray( (result) => {
             if (result.length > 0) {
@@ -417,10 +441,66 @@ class AppContainer extends React.Component {
                         openInputId={this.state.openInputId}
                         onCastMemberEditInputClose={this.handleCastMemberEditInputClose}
                         onListItemInputClose={this.handleListItemInputClose}
+                        onAttachFontButtonClick={this.handleAttachFontButtonClick}
+                        fontNameDialog={this.state.fontNameDialog}
                         />
                 </AppContext.Provider>
             </MuiThemeProvider>
         )
+    }
+
+    handleAttachFontButtonClick() {
+        let options = {
+            title: "Choose Font File",
+            buttonLabel: "Choose",
+        }
+
+        dialog.showOpenDialog(options, (filePaths => {
+            if (filePaths && filePaths.length > 0) {
+                let filePath = filePaths[0];
+                
+                jetpack.readAsync(filePath, "buffer").then( result => {
+
+                    let handleContinue = (fontName) => {
+                        this.setState({ fontNameDialog: { open: false, onContinue: null, onCancel: null } })
+                        let fonts = [...this.state.fonts];
+                        let newFontObject = FontObjectFactory(this.determineFontType(filePath), fontName, result.toString("base64"));
+
+                        // Add to State.
+                        fonts.push(newFontObject);
+                        this.setState({ fonts: fonts })
+
+                        // Import to Document
+                        this.importFontAsync(newFontObject).then(() => {
+
+                        })
+
+                        // Add to Database.
+                        mainDB.fonts.add(newFontObject).then( () => {
+
+                        }) 
+                    }
+
+                    let handleCancel = () => {
+                        this.setState({ fontNameDialog: { open: false, onContinue: null, onCancel: null }});
+                    }
+
+                    // Trigger Font Name Choose Dialog.
+                    this.setState({ fontNameDialog: {open: true, onContinue: handleContinue, onCancel: handleCancel}})                    
+                })
+            }
+        }))
+    }
+
+    determineFontType(filePath) {
+        let fontType = "ttf";
+        let loweredFilePath = filePath.toLowerCase();
+
+        if (loweredFilePath.includes(".otf")) { fontType = "otf"};
+        if (loweredFilePath.includes(".woff")) { fontType = "woff" };
+        if (loweredFilePath.includes(".woff2")) { fontType = "woff2" };
+
+        return fontType;
     }
 
     handleListItemInputClose(uid, type) {
@@ -660,6 +740,7 @@ class AppContainer extends React.Component {
             orchestraMembers: state.orchestraMembers,
             orchestraRoles: state.orchestraRoles,
             theme: state.theme,
+            fonts: state.fonts,
         }
     }
 
@@ -676,6 +757,7 @@ class AppContainer extends React.Component {
         deleteRequests.push(mainDB.theme.clear());
         deleteRequests.push(mainDB.orchestraMembers.clear());
         deleteRequests.push(mainDB.orchestraRoles.clear());
+        deleteRequests.push(mainDB.fonts.clear());
 
         Promise.all(deleteRequests).then(() => {
             let bulkPutRequests = [];
@@ -690,6 +772,7 @@ class AppContainer extends React.Component {
             bulkPutRequests.push(mainDB.theme.bulkPut([state.theme]));
             bulkPutRequests.push(mainDB.orchestraMembers.bulkPut(state.orchestraMembers));
             bulkPutRequests.push(mainDB.orchestraRoles.bulkPut(state.orchestraRoles));
+            bulkPutRequests.push(mainDB.fonts.bulkPut(state.fonts));
 
             Promise.all(bulkPutRequests).then( () => {
                 this.setState({
@@ -703,9 +786,9 @@ class AppContainer extends React.Component {
                     orchestraMembers: state.orchestraMembers,
                     orchestraRoles: state.orchestraRoles,
                     theme: state.theme,
+                    fonts: state.fonts,
                 });
 
-                console.log("Open Complete.")
             }).catch( error => {
                 console.error(error);
             })
@@ -1858,6 +1941,48 @@ class AppContainer extends React.Component {
 
     handlePrevSlideButtonClick() {
         this.setState({ currentSlide: this.state.currentSlide - 1});
+    }
+
+    importFontAsync(fontObject) {
+        return new Promise((resolve, reject) => {
+            let newFontFace = new FontFace(fontObject.familyName, this.getDataUrl(fontObject));
+
+            newFontFace.load().then(loadedFace => {
+                document.fonts.add(loadedFace);
+                resolve();
+            }).catch( error => {
+                reject(error);
+            })
+        })
+    }
+
+    getDataUrl(fontObject) {
+        let dataHeader = "";
+        let format = "";
+        
+        switch(fontObject.type) {
+            case "woff2":
+                dataHeader = 'data:application/font-woff2;charset=utf-8;base64,';
+                format = `format('woff2')`;
+                break;
+            
+            case "woff":
+                dataHeader = 'data:application/font-woff;charset=utf-8;base64,';
+                format = `format('woff)`;
+                break;
+            
+            case "ttf":
+                dataHeader = 'data:font/truetype;charset=utf-8;base64,';
+                format = `format('truetype')`
+                break;
+
+            case "otf":
+                dataHeader = 'data:application/x-font-opentype;charset=utf-8;base64,';
+                format = `format('opentruetype')`;
+                break;
+        }
+
+        return `url(${dataHeader}${fontObject.base64})`; // ${format};`;
     }
 }
 
