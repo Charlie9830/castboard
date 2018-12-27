@@ -7,8 +7,6 @@ const Router = express.Router();
 const Port = 8081;
 const path = require('path');
 
-
-
 class Server extends EventEmitter {
     constructor() {
         super();
@@ -18,6 +16,10 @@ class Server extends EventEmitter {
         this.handleDataRequest = this.handleDataRequest.bind(this);
         this.handleDataPost = this.handleDataPost.bind(this);
         this.handlePlaybackPost = this.handlePlaybackPost.bind(this);
+        this.setElectronLogFilePath = this.setElectronLogFilePath.bind(this);
+
+        // Class Storage.
+        this.electronLogFilePath = "";
 
         // Server Setup.
         App.use(function(req, res, next) {
@@ -45,6 +47,10 @@ class Server extends EventEmitter {
         App.listen(Port);
 
         console.log("Server is listening on Port " + Port);
+    }
+
+    setElectronLogFilePath(filePath) {
+        this.electronLogFilePath = filePath;
     }
 
     handlePlaybackPost(action, req, res) {

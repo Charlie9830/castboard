@@ -7,6 +7,7 @@ import TryShiftItemBackward from '../utilties/TryShiftItemBackward';
 import { AppContext, AppContextDefaultValue } from '../contexts/AppContext';
 const { remote, ipcRenderer } = require('electron');
 const { dialog } = remote;
+const log = require('electron-log');
 
 import { MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles';
 import PrimaryColor from '@material-ui/core/colors/blue';
@@ -25,6 +26,7 @@ import OrchestraRoleFactory from '../factories/OrchestraRoleFactory';
 import OrchestraRowFactory from '../factories/OrchestraRowFactory';
 import CreateThumbnailAsync from '../utilties/CreateThumbnailAsync';
 import FontObjectFactory from '../factories/FontObjectFactory';
+
 
 const mainDB = new Dexie('castboardMainDB');
 mainDB.version(1).stores({
@@ -185,23 +187,47 @@ class AppContainer extends React.Component {
     }
 
     componentDidMount() {
+        log.info("AppContainer Mounted");
+
+        /*
+            GLOBAL ERROR HANDLERS
+        */
+        window.addEventListener('unhandledrejection', (error) => {
+            log.error(error.reason);
+        })
+
+        window.addEventListener('error', (e) => {
+            log.error(e.error.message);
+            log.error(e.error.stack);
+        })
+
+
+        /*
+            PULL DOWN DATABASE
+        */
         // Pull Down Fonts.
-        mainDB.fonts.toArray( result => {
+        log.info("Pulling down fonts");
+        mainDB.fonts.toArray().then(result => {
             if (result.length > 0) {
                 let fonts = [];
                 result.forEach( font => {
                     fonts.push(font);
                     this.importFontAsync(font).then( () => {
 
+                    }).catch( error => {
+                        this.postGeneralSnackbar('error', `Failed to load ${font.familyName}`);
+                        log.error(`Failed to load ${font.familyName}. Reason: ${error}`);
                     })
                 })
-
                 this.setState({ fonts: fonts });
             }
+        }).catch(error => {
+            log.error(error);
         })
 
         // Pull Down Cast Members.
-        mainDB.castMembers.toArray( (result) => {
+        log.info("Pulling down Cast members");
+        mainDB.castMembers.toArray().then(result => {
             if (result.length > 0) {
                 let castMembers = [];
                 result.forEach( item => {
@@ -210,10 +236,13 @@ class AppContainer extends React.Component {
 
                 this.setState({castMembers: castMembers });
             }
+        }).catch(error => {
+            log.error(error);
         })
 
         // Pull Down Roles.
-        mainDB.roles.toArray( (result) => {
+        log.info("Pulling down roles");
+        mainDB.roles.toArray().then(result => {
             if(result.length > 0) {
                 let roles = [];
                 result.forEach( item => {
@@ -222,24 +251,33 @@ class AppContainer extends React.Component {
 
                 this.setState({roles: roles});
             }
+        }).catch(error => {
+            log.error(error);
         })
 
         // Pull down CastChange.
-        mainDB.castChangeMap.get(castChangeId).then( result => {
+        log.info("Pulling down castChangeMap");
+        mainDB.castChangeMap.get(castChangeId).then(result => {
             if (result !== undefined) {
                 this.setState({ castChangeMap: result });
             }
+        }).catch(error => {
+            log.error(error);
         })
 
         // Pull down OrchestraChange.
-        mainDB.orchestraChangeMap.get(orchestraChangeId).then( result => {
+        log.info("Pulling down orchestraChangeMap");
+        mainDB.orchestraChangeMap.get(orchestraChangeId).then(result => {
             if (result !== undefined) {
                 this.setState({ orchestraChangeMap: result });
             }
+        }).catch(error => {
+            log.error(error);
         })
 
         // Pull Down Slides
-        mainDB.slides.orderBy("number").toArray( (result) => {
+        log.info("Pulling down slides");
+        mainDB.slides.orderBy("number").toArray().then(result => {
             if (result.length > 0) {
 
                 let slides = [];
@@ -249,10 +287,13 @@ class AppContainer extends React.Component {
 
                 this.setState({slides: slides});
             }
+        }).catch(error => {
+            log.error(error);
         })
 
         // Pull Down Orchestra Members
-        mainDB.orchestraMembers.toArray((result) => {
+        log.info("Pulling down orchestraMembers");
+        mainDB.orchestraMembers.toArray().then(result => {
             if (result.length > 0) {
                 let orchestraMembers = [];
                 result.forEach(item => {
@@ -261,10 +302,13 @@ class AppContainer extends React.Component {
 
                 this.setState({ orchestraMembers: orchestraMembers });
             }
+        }).catch(error => {
+            log.error(error);
         })
 
         // Pull Down Orchestra Members
-        mainDB.orchestraRoles.toArray((result) => {
+        log.info("Pulling down orchestraRoles");
+        mainDB.orchestraRoles.toArray().then(result => {
             if (result.length > 0) {
                 let orchestraRoles = [];
                 result.forEach(item => {
@@ -273,16 +317,22 @@ class AppContainer extends React.Component {
 
                 this.setState({ orchestraRoles: orchestraRoles });
             }
+        }).catch(error => {
+            log.error(error);
         })
 
         // Pull Down Theme
+        log.info("Pulling down theme");
         mainDB.theme.get(themeId).then( result => {
             if (result !== undefined) {
                 this.setState({ theme: result });
             }
+        }).catch(error => {
+            log.error(error);
         })
 
         // Pull Down Cast Groups
+        log.info("Pulling down castGroups");
         mainDB.castGroups.toArray().then( result => {
             if (result.length > 0) {
                 let castGroups = [];
@@ -292,9 +342,12 @@ class AppContainer extends React.Component {
 
                 this.setState({castGroups: castGroups});
             }
+        }).catch(error => {
+            log.error(error);
         })
 
         // Pull down Role Groups.
+        log.info("Pulling down roleGroups");
         mainDB.roleGroups.toArray().then( result => {
             if (result.length > 0) {
                 let roleGroups = [];
@@ -304,12 +357,14 @@ class AppContainer extends React.Component {
 
                 this.setState({roleGroups: roleGroups});
             }
+        }).catch(error => {
+            log.error(error);
         })
 
-        let winBounds = remote.getCurrentWindow().getBounds();
-        let activeScreen = remote.screen.getDisplayNearestPoint({x: winBounds.x, y: winBounds.y});
-
-        // Register Main Process Events.
+        /*
+            MAIN PROCESS EVENTS
+        */
+        log.info("Registering Main process events");
         ipcRenderer.on('get-data', () => {
             ipcRenderer.send('receive-data', this.packageStateForRemote());
             this.setRemoteServerStatusSnackbar("Cast/Orchestra change sent to remote device");
@@ -477,8 +532,9 @@ class AppContainer extends React.Component {
                             // Add to Database.
                             mainDB.fonts.add(newFontObject).then(() => {
                                 this.postGeneralSnackbar("info", `${newFontObject.familyName} imported successfully.`)
+                            }).catch( error => {
+                                this.postGeneralSnackbar("error", `Failed to import Font. Reason: ${error}`);
                             })
-                            
                         })
                     }
 

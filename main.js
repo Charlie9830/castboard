@@ -4,6 +4,9 @@
 const {app, BrowserWindow, ipcMain} = require('electron');
 const path = require('path')
 const url = require('url')
+const log = require('electron-log');
+const os = require('os');
+const appName = require('./package.json').name;
 const Server = require('./src/server/Server');
 
 
@@ -43,10 +46,8 @@ function handleReceiveDataFromRenderer(event, data) {
   ipcMain.removeListener("receive-data", handleReceiveDataFromRenderer);
 }
 
-
-
 function handleConnectionReceived() {
-  console.log("Holy Shit It Worked!");
+  log("Remote connection to server established");
 }
 
 // Command Line Args.
@@ -62,6 +63,9 @@ let dev = false;
 if ( process.defaultApp || /[\\/]electron-prebuilt[\\/]/.test(process.execPath) || /[\\/]electron[\\/]/.test(process.execPath) ) {
   dev = true;
 }
+
+// Logging.
+setupLogging(dev);
 
 function createWindow() {
   // Create the browser window.
@@ -128,3 +132,33 @@ app.on('activate', () => {
     createWindow();
   }
 });
+
+function getElectronLogFilePath() {
+  let home = app.getPath('home');
+  let appData = app.getPath('appData');
+
+  switch(os.platform()) {
+    case 'linux':
+      return path.join(home, '.config', appName, 'log.log');
+    
+    case 'darwin':
+      return path.join(home, 'Library', 'Logs', appName, 'log.log');
+    
+    case 'win32':
+      return path.join(appData, appName, 'log.log');
+  }
+}
+
+function setupLogging(dev) {
+  if (dev) {
+    // Disable electron File Logging.
+    log.transports.file.level = false;
+  }
+
+  log.transports.file.level = 'info';
+  log.info("Main Process Started");
+
+  let logFilePath = getElectronLogFilePath();
+  RemoteServer.setElectronLogFilePath(logFilePath);
+  log.info("Log File Path: " + logFilePath);
+}

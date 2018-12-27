@@ -43,6 +43,7 @@
     "body-parser": "^1.18.3",
     "chalk": "^2.4.1",
     "dexie": "^2.0.4",
+    "electron-log": "^2.2.17",
     "express": "^4.16.4",
     "fs-jetpack": "^2.2.0",
     "material-ui-color-picker": "^3.0.0",
