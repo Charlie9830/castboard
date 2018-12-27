@@ -19,6 +19,7 @@ class Server extends EventEmitter {
         this.handlePlaybackPost = this.handlePlaybackPost.bind(this);
         this.setElectronLogFilePath = this.setElectronLogFilePath.bind(this);
         this.handleLogsRequest = this.handleLogsRequest.bind(this);
+        this.handleControlPost = this.handleControlPost.bind(this);
 
         // Class Storage.
         this.electronLogFilePath = "";
@@ -47,6 +48,9 @@ class Server extends EventEmitter {
         Router.post('/playback/prev', (req, res) => this.handlePlaybackPost("prev", req, res));
         Router.post('/playback/next', (req, res) => this.handlePlaybackPost("next", req, res));
 
+        // Reset
+        Router.post('/control', this.handleControlPost)
+
         // Logs
         Router.get('/logs', this.handleLogsRequest);
 
@@ -55,6 +59,15 @@ class Server extends EventEmitter {
         App.listen(Port);
 
         console.log("Server is listening on Port " + Port);
+    }
+
+    handleControlPost(req, res) {
+        let data = req.body;
+        if (data !== undefined) {
+            if (data.type === "SOFT_RESET") {
+                this.emit(EventTypes.controlAction, "SOFT_RESET");
+            }
+        }
     }
 
     setElectronLogFilePath(filePath) {

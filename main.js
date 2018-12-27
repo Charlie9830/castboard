@@ -18,13 +18,22 @@ RemoteServer.on("connection-received", handleConnectionReceived);
 RemoteServer.on("get-data", handleGetData);
 RemoteServer.on("receive-data", handleReceiveData);
 RemoteServer.on("playback-action", handlePlaybackAction);
+RemoteServer.on("control-action", handleControlAction);
+
+function handleControlAction(action) {
+  if (action === "SOFT_RESET") {
+    mainWindow.reload();
+  }
+}
 
 function handlePlaybackAction(action) {
   mainWindow.webContents.send("playback-action", action);
+  log.info("Received playback action: " + action);
 }
 
 function handleReceiveData(data) {
   mainWindow.webContents.send("receive-data", data);
+  log.info("Received new Data");
 }
 
 function handleGetData(returnDataCallback) {
@@ -41,13 +50,14 @@ function handleGetData(returnDataCallback) {
 function handleReceiveDataFromRenderer(event, data) {
   if (lastReturnDataCallback !== undefined) {
     lastReturnDataCallback(data);
+    log.info("Sent data to Remote");
   }
 
   ipcMain.removeListener("receive-data", handleReceiveDataFromRenderer);
 }
 
 function handleConnectionReceived() {
-  log("Remote connection to server established");
+  log.info("Remote connection received");
 }
 
 // Command Line Args.
