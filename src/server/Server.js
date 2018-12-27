@@ -6,6 +6,7 @@ const App = express();
 const Router = express.Router();
 const Port = 8081;
 const path = require('path');
+const jetpack = require('fs-jetpack');
 
 class Server extends EventEmitter {
     constructor() {
@@ -17,6 +18,7 @@ class Server extends EventEmitter {
         this.handleDataPost = this.handleDataPost.bind(this);
         this.handlePlaybackPost = this.handlePlaybackPost.bind(this);
         this.setElectronLogFilePath = this.setElectronLogFilePath.bind(this);
+        this.handleLogsRequest = this.handleLogsRequest.bind(this);
 
         // Class Storage.
         this.electronLogFilePath = "";
@@ -32,7 +34,10 @@ class Server extends EventEmitter {
         App.use(bodyParser.urlencoded({ extended: true }));
         App.use(bodyParser.json());
 
+        // Root
         Router.get('/', this.handleRootRequest);
+
+        // Cast/Orchestra Change Data.
         Router.get('/data', this.handleDataRequest);
         Router.post('/data', this.handleDataPost);
 
@@ -41,6 +46,9 @@ class Server extends EventEmitter {
         Router.post('/playback/play', (req, res) => this.handlePlaybackPost("play", req, res));
         Router.post('/playback/prev', (req, res) => this.handlePlaybackPost("prev", req, res));
         Router.post('/playback/next', (req, res) => this.handlePlaybackPost("next", req, res));
+
+        // Logs
+        Router.get('/logs', this.handleLogsRequest);
 
         App.use(Router);
 
@@ -63,6 +71,19 @@ class Server extends EventEmitter {
         res.sendStatus(200);
         
         this.emit(EventTypes.receiveData, data);
+    }
+
+    handleLogsRequest(req, res) {
+        if (this.electronLogFilePath === "") {
+            res.json({ logs: "Error: Data could not be retrieved. electronLogFilePath has not been set" });
+            return;
+        }
+
+        jetpack.readAsync(this.electronLogFilePath, "utf8").then( result => {
+            res.json({ logs: result });
+        }).catch( error => {
+            res.json({ logs: error });
+        })
     }
 
     handleDataRequest(req, res) {
