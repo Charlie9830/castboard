@@ -3,7 +3,8 @@ const EventTypes = {
     getData: 'get-data',
     receiveData: 'receive-data',
     playbackAction: 'playback-action',
-    controlAction: 'control-action'
+    controlAction: 'control-action',
+    receiveShowFile: 'receive-show-file',
 }
 
 module.exports = EventTypes;

@@ -49,6 +49,7 @@
     "fs-jetpack": "^2.2.0",
     "material-ui-color-picker": "^3.0.0",
     "move-file": "^1.0.0",
+    "multer": "^1.4.1",
     "react-hover-observer": "^2.1.1",
     "react-sizeme": "^2.5.2",
     "uuid": "^3.3.2"

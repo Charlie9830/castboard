@@ -19,6 +19,14 @@ RemoteServer.on("get-data", handleGetData);
 RemoteServer.on("receive-data", handleReceiveData);
 RemoteServer.on("playback-action", handlePlaybackAction);
 RemoteServer.on("control-action", handleControlAction);
+RemoteServer.on("receive-show-file", handleReceiveShowFile);
+
+function handleReceiveShowFile(showfile) {
+  if (showfile !== undefined) {
+    log.info("New showfile received: " + showfile.fileName);
+    mainWindow.webContents.send("receive-show-file", showfile);
+  }
+}
 
 function handleControlAction(action) {
   if (action === "SOFT_RESET") {

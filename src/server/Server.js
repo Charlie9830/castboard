@@ -7,6 +7,7 @@ const Router = express.Router();
 const Port = 8081;
 const path = require('path');
 const jetpack = require('fs-jetpack');
+const multer = require('multer');
 
 class Server extends EventEmitter {
     constructor() {
@@ -20,6 +21,7 @@ class Server extends EventEmitter {
         this.setElectronLogFilePath = this.setElectronLogFilePath.bind(this);
         this.handleLogsRequest = this.handleLogsRequest.bind(this);
         this.handleControlPost = this.handleControlPost.bind(this);
+        this.handleShowFilePost = this.handleShowFilePost.bind(this);
 
         // Class Storage.
         this.electronLogFilePath = "";
@@ -48,6 +50,9 @@ class Server extends EventEmitter {
         Router.post('/playback/prev', (req, res) => this.handlePlaybackPost("prev", req, res));
         Router.post('/playback/next', (req, res) => this.handlePlaybackPost("next", req, res));
 
+        // Show File
+        Router.post('/showfile', multer().single('showfile'), this.handleShowFilePost);
+
         // Reset
         Router.post('/control', this.handleControlPost)
 
@@ -59,6 +64,18 @@ class Server extends EventEmitter {
         App.listen(Port);
 
         console.log("Server is listening on Port " + Port);
+    }
+
+    handleShowFilePost(req, res) {
+        res.sendStatus(200);
+        let file = req.file;
+
+        let showfile = {
+            fileName: file.originalname,
+            data: JSON.parse(file.buffer.toString('utf8')),
+        }
+
+        this.emit(EventTypes.receiveShowFile, showfile);
     }
 
     handleControlPost(req, res) {

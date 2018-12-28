@@ -385,6 +385,13 @@ class AppContainer extends React.Component {
             this.setRemoteServerStatusSnackbar("New Cast/Orchestra change received");
         })
 
+        ipcRenderer.on('receive-show-file', (event, showfile) => {
+            let fileName = showfile.fileName;
+            this.unpackageState(showfile.data);
+
+            this.postGeneralSnackbar("info", "New Showfile Received");
+        })
+
         ipcRenderer.on('playback-action', (event, action) => {
             switch (action) {
                 case "play":
