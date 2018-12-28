@@ -185,6 +185,8 @@ class AppContainer extends React.Component {
         this.handleListItemInputClose = this.handleListItemInputClose.bind(this);
         this.handleAttachFontButtonClick = this.handleAttachFontButtonClick.bind(this);
         this.postGeneralSnackbar = this.postGeneralSnackbar.bind(this);
+        this.enterPresentationMode = this.enterPresentationMode.bind(this);
+        this.leavePresentationMode = this.leavePresentationMode.bind(this);
     }
 
     componentDidMount() {
@@ -409,9 +411,9 @@ class AppContainer extends React.Component {
         })
 
         // Set Presentation Mode.
-        if (os.platform() === 'linux') {
-            // Very likely running on the Raspberry Pi. So put us into presentation mode immediately.
-            this.handleTogglePresentationMode();
+        if (os.platform() === 'linux' && this.state.isInPresentationMode === false) {
+            // Very likely running on Raspberry Pi. So put us into presentation mode immediately.
+            this.enterPresentationMode();
         }
     }
 
@@ -625,44 +627,68 @@ class AppContainer extends React.Component {
     handleTogglePresentationMode() {
         if (this.state.isInPresentationMode === true) {
             // Toggle Out of Presentation Mode.
-            this.setState({ isInPresentationMode: false});
-            remote.getCurrentWindow().setFullScreen(false);
-            remote.getCurrentWindow().setMenuBarVisibility(true);
-            remote.powerSaveBlocker.stop(this.powerSaveBlockerId);
-            
-
-            clearInterval(this.presentationInterval);
+            this.leavePresentationMode();
         }
 
         else {
             // Toggle into Presentation Mode.
             if (this.state.slides.length !== 0) {
-                remote.getCurrentWindow().setFullScreen(true);
-                this.powerSaveBlockerId = remote.powerSaveBlocker.start("prevent-display-sleep");
-                remote.getCurrentWindow().setMenuBarVisibility(false);
-
-                this.setState({
-                    isInPresentationMode: true,
-                    isPlaying: true,
-                    selectedSlideId: this.state.slides[0].uid,
-                });
-
-                this.presentationInterval = setInterval(() => {
-                    if (this.state.isPlaying) {
-                        this.setState({ selectedSlideId: this.getNextSlideId(this.state.selectedSlideId, this.state.slides) });
-                    }
-                    
-                }, this.state.theme.holdTime * 1000);
+                this.enterPresentationMode();
             }
         }
     }
 
+    enterPresentationMode() {
+        remote.getCurrentWindow().setFullScreen(true);
+        this.powerSaveBlockerId = remote.powerSaveBlocker.start("prevent-display-sleep");
+        remote.getCurrentWindow().setMenuBarVisibility(false);
+
+        // This function can be called from within ComponentDidMount. state.slides may not be hydrated by the DB yet.
+        // So be careful about setting selectedSlideId and choosing the next slide.
+        this.setState({
+            isInPresentationMode: true,
+            isPlaying: true,
+            selectedSlideId: this.state.slides[0] !== undefined ? this.state.slides[0].uid : -1,
+        })
+
+        this.presentationInterval = setInterval(() => {
+            if (this.state.isPlaying) {
+                this.setState({ selectedSlideId: this.getNextSlideId(this.state.selectedSlideId, this.state.slides) });
+            }
+
+        }, this.state.theme.holdTime * 1000);
+    }
+
+    leavePresentationMode() {
+        this.setState({ isInPresentationMode: false});
+        remote.getCurrentWindow().setFullScreen(false);
+        remote.getCurrentWindow().setMenuBarVisibility(true);
+        remote.powerSaveBlocker.stop(this.powerSaveBlockerId);
+        
+
+        clearInterval(this.presentationInterval);
+    }
+
     getNextSlideId(currentId, slides) {
+        if (slides.length === 0) {
+            return -1;
+        }
+
+        if (currentId === -1) {
+            if (slides[0] !== undefined) {
+                return slides[0].uid;
+            }
+
+            else {
+                return -1;
+            }
+        }
+
         let slideIndex = slides.findIndex(item => {
             return item.uid === currentId;
         })
 
-        if (slideIndex !== slides.length -1) {
+        if (slideIndex !== slides.length - 1) {
             return slides[slideIndex + 1].uid;
         }
 
