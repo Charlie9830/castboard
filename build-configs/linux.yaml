@@ -9,5 +9,5 @@ linux:
   target:
     - target: dir
       arch:
-        - arm64
+        - armv7l
 asar: true
