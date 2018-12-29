@@ -72,7 +72,6 @@ class AppContainer extends React.Component {
 
         // State.
         this.state = {
-            currentSlide: 0,
             castMembers: [],
             castGroups: [],
             roles: [],
@@ -112,8 +111,6 @@ class AppContainer extends React.Component {
         this.powerSaveBlockerId = -1;
 
         // Method Bindings.
-        this.handleNextSlideButtonClick = this.handleNextSlideButtonClick.bind(this);
-        this.handlePrevSlideButtonClick = this.handlePrevSlideButtonClick.bind(this);
         this.handleAddCastMemberButtonClick = this.handleAddCastMemberButtonClick.bind(this);
         this.handleCastMemberNameChange = this.handleCastMemberNameChange.bind(this);
         this.handleRoleBillingChange = this.handleRoleBillingChange.bind(this);
@@ -428,9 +425,7 @@ class AppContainer extends React.Component {
         return (
             <MuiThemeProvider theme={muiTheme}>
                 <AppContext.Provider value={this.state.appContext}>
-                    <App currentSlide={this.state.currentSlide}
-                        onNextSlideButtonClick={this.handleNextSlideButtonClick}
-                        onPrevSlideButtonClick={this.handlePrevSlideButtonClick}
+                    <App
                         onAddCastMemberButtonClick={this.handleAddCastMemberButtonClick}
                         castMembers={this.state.castMembers}
                         onCastMemberNameChange={this.handleCastMemberNameChange}
@@ -2032,14 +2027,6 @@ class AppContainer extends React.Component {
 
         // Add to DB
         mainDB.castMembers.add(newCastMember);
-    }
-
-    handleNextSlideButtonClick() {
-        this.setState({ currentSlide: this.state.currentSlide + 1});
-    }
-
-    handlePrevSlideButtonClick() {
-        this.setState({ currentSlide: this.state.currentSlide - 1});
     }
 
     importFontAsync(fontObject) {

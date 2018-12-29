@@ -199,19 +199,6 @@ class AppDrawer extends React.Component {
                         <Typography variant="h6" color="textPrimary"> Properties  </Typography>
                         <Grid container
                         direction="row-reverse">
-                        <IconButton onClick={this.props.onZoomInButtonClick}>
-                            <ZoomInIcon/>
-                        </IconButton>
-                        <IconButton onClick={this.props.onZoomOutButtonClick}>
-                            <ZoomOutIcon/>
-                        </IconButton>
-                        <IconButton onClick={this.props.onNextSlideButtonClick}>
-                            <ArrowForwardIcon/>
-                        </IconButton>
-                        <Typography variant="h6" color="textPrimary"> {this.props.currentSlide} </Typography>
-                        <IconButton onClick={this.props.onPrevSlideButtonClick}>
-                            <ArrowBackIcon/>
-                        </IconButton>
                         </Grid>
                     </Toolbar>
 

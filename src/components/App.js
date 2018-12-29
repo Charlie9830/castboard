@@ -15,14 +15,7 @@ class App extends Component {
   constructor(props) {
     super(props)
 
-    // State.
-    this.state = {
-      zoomLevel: 1,
-    }
-
     // Method Bindings.
-    this.handleZoomInButtonClick = this.handleZoomInButtonClick.bind(this);
-    this.handleZoomOutButtonClick = this.handleZoomOutButtonClick.bind(this);
     this.getPresentationModeLayout = this.getPresentationModeLayout.bind(this);
   }
 
@@ -89,7 +82,6 @@ class App extends Component {
           onRoleNameChange={this.props.onRoleNameChange}
           onNextSlideButtonClick={this.props.onNextSlideButtonClick}
           onPrevSlideButtonClick={this.props.onPrevSlideButtonClick}
-          currentSlide={this.props.currentSlide}
           onAddHeadshotButtonClick={this.props.onAddHeadshotButtonClick}
           onCastChange={this.props.onCastChange}
           castChangeMap={this.props.castChangeMap}
@@ -110,8 +102,6 @@ class App extends Component {
           onAddRoleToCastRowButtonClick={this.props.onAddRoleToCastRowButtonClick}
           onSlideTitleChange={this.props.onSlideTitleChange}
           onSlideTitleFontStyleChange={this.props.onSlideTitleFontStyleChange}
-          onZoomInButtonClick={this.handleZoomInButtonClick}
-          onZoomOutButtonClick={this.handleZoomOutButtonClick}
           onCastRowRoleDeleteButtonClick={this.props.onCastRowRoleDeleteButtonClick}
           onCastRowDeleteButtonClick={this.props.onCastRowDeleteButtonClick}
           onCastRowRoleShiftUpButtonClick={this.props.onCastRowRoleShiftUpButtonClick}
@@ -189,14 +179,6 @@ class App extends Component {
           roles={this.props.roles} orchestraRoles={this.props.orchestraRoles} />
       </div>
     )
-  }
-
-  handleZoomInButtonClick() {
-    this.setState({zoomLevel: this.state.zoomLevel + 0.1});
-  }
-
-  handleZoomOutButtonClick() {
-    this.setState({zoomLevel: this.state.zoomLevel - 0.1});
   }
 
   getCurrentSlide(slides, slideId) {
