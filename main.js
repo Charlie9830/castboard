@@ -95,7 +95,15 @@ function createWindow() {
 
   // and load the index.html of the app.
   let indexPath;
-  if ( dev && process.argv.indexOf('--noDevServer') === -1 ) {
+  if (process.argv.indexOf('--show-gpu-info') !== -1) {
+    indexPath = url.format({
+      protocol: 'chrome:',
+      host: 'gpu',
+      slashes: true,
+    })
+  }
+
+  else if ( dev && process.argv.indexOf('--noDevServer') === -1 ) {
     indexPath = url.format({
       protocol: 'http:',
       host: 'localhost:8080',
