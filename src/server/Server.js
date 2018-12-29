@@ -79,6 +79,7 @@ class Server extends EventEmitter {
     }
 
     handleControlPost(req, res) {
+        res.sendStatus(200);
         let data = req.body;
         if (data !== undefined) {
             if (data.type === "SOFT_RESET") {
