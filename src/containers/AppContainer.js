@@ -806,6 +806,9 @@ class AppContainer extends React.Component {
         let options = {
             title: "Open",
             buttonLabel: "Open",
+            filters: [
+                { name: 'Javascript Object Notation', extensions: ['json'] },
+            ]
         }
 
         dialog.showOpenDialog(options, (filePaths => {
@@ -827,12 +830,22 @@ class AppContainer extends React.Component {
 
     handleSaveButtonClick() {
         let options = {
-            title: "Save"
+            title: "Save",
+            filters: [
+                { name: 'Javascript Object Notation', extensions: ['json'] },
+            ]
         }
 
         dialog.showSaveDialog(options, fileName =>  {
             if (fileName !== undefined) {
                 jetpack.writeAsync(fileName, this.packageState(this.state), {atomic: true}).then( () => {
+                    let showfileInfo = {...this.state.showfileInfo};
+                    let newName = path.basename(fileName, '.json');
+                    showfileInfo.name = newName;
+                    this.setState({showfileInfo: showfileInfo});
+
+                    mainDB.showfileInfo.update(showfileInfoId, {name: newName});
+
                     this.postGeneralSnackbar("info", "Show saved successfully");
                 })
             }
