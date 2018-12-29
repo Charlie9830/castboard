@@ -9,6 +9,7 @@ const { remote, ipcRenderer } = require('electron');
 const { dialog } = remote;
 const log = require('electron-log');
 import os from 'os';
+import path from 'path';
 
 import { MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles';
 import PrimaryColor from '@material-ui/core/colors/blue';
@@ -27,10 +28,12 @@ import OrchestraRoleFactory from '../factories/OrchestraRoleFactory';
 import OrchestraRowFactory from '../factories/OrchestraRowFactory';
 import CreateThumbnailAsync from '../utilties/CreateThumbnailAsync';
 import FontObjectFactory from '../factories/FontObjectFactory';
+import ShowfileInfoFactory from '../factories/ShowfileInfoFactory';
 
 
 const mainDB = new Dexie('castboardMainDB');
 mainDB.version(1).stores({
+    showfileInfo: 'uid',
     castMembers: 'uid, name, groupId',
     castGroups: 'uid',
     roles: 'uid, name, groupId',
@@ -51,6 +54,7 @@ mainDB.on('populate', () => {
 const castChangeId = "0";
 const themeId = "0";
 const orchestraChangeId = "0";
+const showfileInfoId = "0";
 
 const muiTheme = createMuiTheme({
     palette: {
@@ -72,6 +76,7 @@ class AppContainer extends React.Component {
 
         // State.
         this.state = {
+            showfileInfo: ShowfileInfoFactory(""),
             castMembers: [],
             castGroups: [],
             roles: [],
@@ -205,6 +210,17 @@ class AppContainer extends React.Component {
         /*
             PULL DOWN DATABASE
         */
+        // Pull down ShowfileInfo
+        log.info("Pulling down showfileInfo");
+        mainDB.showfileInfo.get(showfileInfoId).then( result => {
+            if (result !== undefined) {
+                this.setState({ showfileInfo: result });
+                log.info("Loaded " + result.name);
+            }
+        }).catch(error => {
+            log.error(error);
+        })
+
         // Pull Down Fonts.
         log.info("Pulling down fonts");
         mainDB.fonts.toArray().then(result => {
@@ -511,6 +527,7 @@ class AppContainer extends React.Component {
                         onAttachFontButtonClick={this.handleAttachFontButtonClick}
                         fontNameDialog={this.state.fontNameDialog}
                         generalSnackbar={this.state.generalSnackbar}
+                        showfileInfo={this.state.showfileInfo}
                         />
                 </AppContext.Provider>
             </MuiThemeProvider>
@@ -797,7 +814,8 @@ class AppContainer extends React.Component {
                 
                 jetpack.readAsync(filePath, "json").then( result => {
                     if (result !== undefined) {
-                        this.unpackageState(result);
+                        let showfileName = path.basename(filePath, '.json'); 
+                        this.unpackageState(result, showfileName);
                         
                         this.postGeneralSnackbar("info", "Show loaded successfully");
                     }
@@ -838,7 +856,7 @@ class AppContainer extends React.Component {
         }
     }
 
-    unpackageState(state) {
+    unpackageState(state, showFileName) {
         let deleteRequests = [];
 
         deleteRequests.push(mainDB.castMembers.clear());
@@ -852,9 +870,11 @@ class AppContainer extends React.Component {
         deleteRequests.push(mainDB.orchestraMembers.clear());
         deleteRequests.push(mainDB.orchestraRoles.clear());
         deleteRequests.push(mainDB.fonts.clear());
+        deleteRequests.push(mainDB.showfileInfo.clear());
 
         Promise.all(deleteRequests).then(() => {
             let bulkPutRequests = [];
+            let newShowfileInfo = ShowfileInfoFactory(showFileName);
 
             bulkPutRequests.push(mainDB.castMembers.bulkPut(state.castMembers));
             bulkPutRequests.push(mainDB.castGroups.bulkPut(state.castGroups));
@@ -867,9 +887,11 @@ class AppContainer extends React.Component {
             bulkPutRequests.push(mainDB.orchestraMembers.bulkPut(state.orchestraMembers));
             bulkPutRequests.push(mainDB.orchestraRoles.bulkPut(state.orchestraRoles));
             bulkPutRequests.push(mainDB.fonts.bulkPut(state.fonts));
+            bulkPutRequests.push(mainDB.showfileInfo.bulkPut([newShowfileInfo]));
 
             Promise.all(bulkPutRequests).then( () => {
                 this.setState({
+                    showfileInfo: newShowfileInfo,
                     castMembers: state.castMembers,
                     castGroups: state.castGroups,
                     roles: state.roles,

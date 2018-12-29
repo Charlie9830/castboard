@@ -31,7 +31,7 @@ class App extends Component {
     if (this.props.isInPresentationMode) {
       return this.getPresentationModeLayout();
     }
-    
+
     return (
       <div className="App">
         <CssBaseline/>
@@ -63,6 +63,7 @@ class App extends Component {
               justify="flex-start">
                 <Button onClick={this.props.onSaveButtonClick}> Save </Button>
                 <Button onClick={this.props.onOpenButtonClick}> Open </Button>
+                <Typography style={{paddingRight: '32px'}} variant="h6" color="textSecondary" > {this.props.showfileInfo.name} </Typography>
               </Grid>
               
             </Toolbar>
