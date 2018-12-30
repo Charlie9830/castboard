@@ -5,6 +5,11 @@ files:
   - ./dist/
   - ./main.js
   - ./src/server
+extraFiles: 
+  - from: "./bash-scripts/"
+    to: "./"
+    filter: 
+      - "*"
 linux:
   target:
     - target: 7z
