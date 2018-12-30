@@ -8,6 +8,8 @@ const Port = 8081;
 const path = require('path');
 const jetpack = require('fs-jetpack');
 const multer = require('multer');
+const os = require('os');
+const exec = require('child_process').exec;
 
 class Server extends EventEmitter {
     constructor() {
@@ -85,6 +87,15 @@ class Server extends EventEmitter {
             if (data.type === "SOFT_RESET") {
                 this.emit(EventTypes.controlAction, "SOFT_RESET");
             }
+  
+            if (data.type === "HARD_RESET") {
+                Reboot();
+            }
+            
+            if (data.type === "POWER_OFF") {
+                PowerOff();
+            }
+
         }
     }
 
@@ -132,6 +143,18 @@ class Server extends EventEmitter {
                 resolve(data);
             });
         })
+    }
+}
+
+function PowerOff() {
+    if (os.platform() === "linux") {
+        exec('poweroff');
+    }
+}
+
+function Reboot() {
+    if (os.platform() === "linux") {
+        exec('reboot');
     }
 }
 
