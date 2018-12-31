@@ -24,6 +24,7 @@ class Server extends EventEmitter {
         this.handleLogsRequest = this.handleLogsRequest.bind(this);
         this.handleControlPost = this.handleControlPost.bind(this);
         this.handleShowFilePost = this.handleShowFilePost.bind(this);
+        this.handleGetPing = this.handleGetPing.bind(this);
 
         // Class Storage.
         this.electronLogFilePath = "";
@@ -41,6 +42,7 @@ class Server extends EventEmitter {
 
         // Root
         Router.get('/', this.handleRootRequest);
+        Router.get('/ping', this.handleGetPing);
 
         // Cast/Orchestra Change Data.
         Router.get('/data', this.handleDataRequest);
@@ -66,6 +68,10 @@ class Server extends EventEmitter {
         App.listen(Port);
 
         console.log("Server is listening on Port " + Port);
+    }
+
+    handleGetPing(req, res) {
+        res.json({reply: "pong"});
     }
 
     handleShowFilePost(req, res) {
