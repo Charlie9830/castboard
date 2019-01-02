@@ -1,7 +1,7 @@
 'use strict';
 
 // Import parts of electron to use
-const {app, BrowserWindow, ipcMain} = require('electron');
+const {app, BrowserWindow, ipcMain, Menu} = require('electron');
 const path = require('path')
 const url = require('url')
 const log = require('electron-log');
@@ -92,6 +92,11 @@ function createWindow() {
   });
 
   mainWindow.maximize();
+
+  // Setup Application Menu. (Without this, Copy/Paste/Undo/Redo/etc shortcuts won't work on MacosX)
+  if (process.platform === "darwin") {
+    setupApplicationMenu();
+  }
 
   // and load the index.html of the app.
   let indexPath;
@@ -187,4 +192,26 @@ function setupLogging(dev) {
   let logFilePath = getElectronLogFilePath();
   RemoteServer.setElectronLogFilePath(logFilePath);
   log.info("Log File Path: " + logFilePath);
+}
+
+function setupApplicationMenu() {
+  var template = [{
+    label: "Handball",
+    submenu: [
+        { label: "Quit", accelerator: "Command+Q", click: function() { app.quit(); }}
+    ]},
+    { label: "Edit",
+    submenu: [
+      { label: "Undo", accelerator: "CmdOrCtrl+Z", selector: "undo:" },
+      { label: "Redo", accelerator: "Shift+CmdOrCtrl+Z", selector: "redo:" },
+      { type: "separator" },
+      { label: "Cut", accelerator: "CmdOrCtrl+X", selector: "cut:" },
+      { label: "Copy", accelerator: "CmdOrCtrl+C", selector: "copy:" },
+      { label: "Paste", accelerator: "CmdOrCtrl+V", selector: "paste:" },
+      { label: "Select All", accelerator: "CmdOrCtrl+A", selector: "selectAll:" }
+    ]
+  }
+  ];
+
+  Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 }
