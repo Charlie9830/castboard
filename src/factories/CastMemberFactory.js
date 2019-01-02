@@ -6,6 +6,7 @@ let CastMemberFactory = (name, groupId) => {
         groupId: groupId,
         uid: GetUID(),
         thumbnailUrl: "",
+        headshot: "",
     }
 }
 
