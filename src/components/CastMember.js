@@ -38,11 +38,17 @@ let CastMember = (props) => {
 
     return (
         <div style={containerStyle}>
-            <img style={headshotStyle} alt="Head not Found" src={'data:image/jpg;base64,' + props.headshot}/>
+            <img style={headshotStyle} alt="Head not Found" src={'data:image/jpg;base64,' + props.headshot}
+            onError={(e) => {onImageError(e, props.name)}}/>
             <div style={nameStyle}> {props.name} </div>
             <div style={roleStyle}> {props.character} </div>
         </div>
     )
+}
+
+let onImageError = (error, name) => {
+    const log = require('electron-log');
+    log.error(`Failed to load ${name}'s Headshot`);
 }
 
 let getHeadshotDimensions = (billing) => {
