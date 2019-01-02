@@ -39,6 +39,7 @@ import RoleGroupFactory from '../factories/RoleGroupFactory';
 import RoleGroup from './RoleGroup';
 import GetOrchestraIdFromMap from '../utilties/GetOrchestraIdFromMap';
 import ToTitleCase from '../utilties/ToTitleCase';
+import EditRoleDialog from './EditDialogs/EditRoleDialog';
 
 let DisplayedName = (props) => {
     if (props.name !== props.displayedName) {
@@ -84,17 +85,7 @@ let CastMemberOpen = (props) => {
 let RoleOpen = (props) => {
     return (
         <React.Fragment>
-                    <TextField autoFocus style={{ width: '192px' }}
-                        label="Internal Role Name"
-                        defaultValue={props.name}
-                        onChange={props.onNameChange}/>
-
-                    <TextField style={{ width: '192px', marginLeft: '8px' }}
-                        value={props.displayedName}
-                        label="Display Name"
-                        onChange={props.onDisplayedNameChange} />
-
-                    <BillingSelect value={props.billing} onChange={props.onBillingChange} />
+                    
                 </React.Fragment>
     )
 }
@@ -130,17 +121,6 @@ let SlideTypeSelect = (props) => {
     )
 }
 
-
-
-let BillingSelect = (props) => {
-    return (
-        <Select style={{marginLeft: '8px', marginRight: '8px'}} onChange={props.onChange} value={props.value} name="Billing">
-            <MenuItem value="principle"> Principle </MenuItem>
-            <MenuItem value="lead"> Lead </MenuItem>
-            <MenuItem value="ensemble"> Ensemble </MenuItem>
-        </Select>
-    )
-}
 
 let OrchestraBillingSelect = (props) => {
     return (
@@ -944,10 +924,10 @@ class AppDrawer extends React.Component {
 
         let individualRolesJSX = individualRoles.map( item => {
             let openComponent = (
-                <RoleOpen key={item.uid} name={item.name} displayedName={item.displayedName} billing={item.billing}
+                <EditRoleDialog open={true} key={item.uid} name={item.name} displayedName={item.displayedName} billing={item.billing}
                 onNameChange={(e) => { this.props.onRoleNameChange(item.uid, e.target.value) }}
                 onDisplayedNameChange={(e) => { this.props.onRoleDisplayedNameChange(item.uid, e.target.value) }}
-                onBillingChange={(e) => { this.props.onRoleBillingChange(item.uid, e.target.value) }}
+                onBillingChange={(e) => {this.props.onRoleBillingChange(item.uid, e.target.value) }}
                 />
             )
 
@@ -991,7 +971,7 @@ class AppDrawer extends React.Component {
 
                 else {
                     let openComponent = (
-                        <RoleOpen key={role.uid} name={role.name} displayedName={role.displayedName} billing={role.billing}
+                        <EditRoleDialog open={true} key={role.uid} name={role.name} displayedName={role.displayedName} billing={role.billing}
                         onNameChange={(e) => { this.props.onRoleNameChange(role.uid, e.target.value) }}
                         onDisplayedNameChange={(e) => { this.props.onRoleDisplayedNameChange(role.uid, e.target.value) }}
                         onBillingChange={(e) => { this.props.onRoleBillingChange(role.uid, e.target.value) }}

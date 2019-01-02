@@ -17,17 +17,7 @@ class EditableListItem extends React.Component {
     render() {
         let listItemContents;
         if (this.props.isInputOpen) {
-            listItemContents = (
-                <ClickAwayListener onClickAway={this.props.onInputClose}>
-                        <Grid style={{ width: '100%', height: '100%', padding: '8px' }} onKeyPress={this.handleKeyPress}
-                            container
-                            direction="row"
-                            justify="space-between"
-                            alignItems="center">
-                                {this.props.openComponent}
-                        </Grid>
-                </ClickAwayListener>
-            )
+            listItemContents = this.props.openComponent;
         }
 
         else {
@@ -48,7 +38,7 @@ class EditableListItem extends React.Component {
         
 
         return (
-                <ListItem onMouseOver={() => { this.setState({ isMouseOver: true }) }} onMouseLeave={() => { this.setState({ isMouseOver: false }) }}
+                <ListItem onKeyPress={this.handleKeyPress} onMouseOver={() => { this.setState({ isMouseOver: true }) }} onMouseLeave={() => { this.setState({ isMouseOver: false }) }}
                     style={{ paddingLeft: this.props.inset === true ? "64px" : 'inherit' }}>
                     {listItemContents}
                 </ListItem>            
