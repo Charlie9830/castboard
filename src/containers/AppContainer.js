@@ -32,6 +32,7 @@ import ShowfileInfoFactory from '../factories/ShowfileInfoFactory';
 
 
 const mainDB = new Dexie('castboardMainDB');
+// DB Version 1
 mainDB.version(1).stores({
     showfileInfo: 'uid',
     castMembers: 'uid, name, groupId',
@@ -44,6 +45,22 @@ mainDB.version(1).stores({
     theme: 'uid',
     orchestraMembers: 'uid',
     orchestraRoles: 'uid',
+    fonts: 'uid',
+});
+
+// DB Version 2
+mainDB.version(2).stores({
+    showfileInfo: 'uid',
+    castMembers: 'uid, name, groupId',
+    castGroups: 'uid',
+    roles: 'uid, name, groupId, billing',
+    roleGroups: 'uid',
+    castChangeMap: 'uid',
+    orchestraChangeMap: 'uid',
+    slides: 'uid, number',
+    theme: 'uid',
+    orchestraMembers: 'uid, name', // Added name index.
+    orchestraRoles: 'uid, name, billing', // Added name, billing, indexes.
     fonts: 'uid',
 });
 
@@ -243,7 +260,7 @@ class AppContainer extends React.Component {
 
         // Pull Down Cast Members.
         log.info("Pulling down Cast members");
-        mainDB.castMembers.toArray().then(result => {
+        mainDB.castMembers.orderBy('name').toArray().then(result => {
             if (result.length > 0) {
                 let castMembers = [];
                 result.forEach( item => {
@@ -258,7 +275,7 @@ class AppContainer extends React.Component {
 
         // Pull Down Roles.
         log.info("Pulling down roles");
-        mainDB.roles.toArray().then(result => {
+        mainDB.roles.orderBy('billing').toArray().then(result => {
             if(result.length > 0) {
                 let roles = [];
                 result.forEach( item => {
@@ -309,7 +326,7 @@ class AppContainer extends React.Component {
 
         // Pull Down Orchestra Members
         log.info("Pulling down orchestraMembers");
-        mainDB.orchestraMembers.toArray().then(result => {
+        mainDB.orchestraMembers.orderBy('name').toArray().then(result => {
             if (result.length > 0) {
                 let orchestraMembers = [];
                 result.forEach(item => {
@@ -322,9 +339,9 @@ class AppContainer extends React.Component {
             log.error(error);
         })
 
-        // Pull Down Orchestra Members
+        // Pull Down Orchestra Roles.
         log.info("Pulling down orchestraRoles");
-        mainDB.orchestraRoles.toArray().then(result => {
+        mainDB.orchestraRoles.orderBy('billing').toArray().then(result => {
             if (result.length > 0) {
                 let orchestraRoles = [];
                 result.forEach(item => {
