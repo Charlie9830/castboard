@@ -28,10 +28,12 @@ let CastMember = (props) => {
     let nameStyle = {
         ...getNameFontStyle(props.billing, props.theme),
         marginTop: getNameMarginTop(props.billing),
+        textAlign: 'center',
     }
 
     let roleStyle = {
         ...getRoleFontStyle(props.billing, props.theme),
+        textAlign: 'center',
     }
 
     return (
