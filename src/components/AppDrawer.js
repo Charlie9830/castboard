@@ -1109,7 +1109,7 @@ class AppDrawer extends React.Component {
                 )
 
                 let closedComponent = (
-                    <CastMemberClosed uid={castMember.uid} headshot={castMember.headshot}
+                    <CastMemberClosed uid={castMember.uid} headshot={castMember.thumbnailUrl}
                      billing={castMember.billing} name={castMember.name}/>
                 )
 
