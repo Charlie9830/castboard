@@ -1,7 +1,7 @@
 'use strict';
 
 // Import parts of electron to use
-const {app, BrowserWindow, ipcMain, Menu} = require('electron');
+const {app, BrowserWindow, ipcMain, Menu, powerSaveBlocker} = require('electron');
 const path = require('path')
 const url = require('url')
 const log = require('electron-log');
@@ -131,6 +131,21 @@ function createWindow() {
     if ( dev ) {
       mainWindow.webContents.openDevTools();
     }
+
+    // Enable the powerSaveBlocker if on Linux (Raspberry Pi).
+    if (os.platform() === 'linux') {
+      const id = powerSaveBlocker.start('prevent-display-sleep')
+      
+      if (powerSaveBlocker.isStarted(id)) {
+        log.info("powerSaveBlocker started");
+      }
+
+      else {
+        log.info("powerSaveBlocker did not start");
+      }
+    }
+    
+
   });
 
   // Emitted when the window is closed.
