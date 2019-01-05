@@ -64,6 +64,23 @@ mainDB.version(2).stores({
     fonts: 'uid',
 });
 
+// DB Version 3
+mainDB.version(3).stores({
+    showfileInfo: 'uid',
+    castMembers: 'uid, name, groupId',
+    castGroups: 'uid',
+    roles: 'uid, name, groupId, billing',
+    roleGroups: 'uid',
+    castChangeMap: 'uid',
+    orchestraChangeMap: 'uid',
+    slides: 'uid, number',
+    theme: 'uid',
+    orchestraMembers: 'uid, name',
+    orchestraRoles: 'uid, name, billing',
+    fonts: 'uid',
+    presets: 'uid', // Added Presets Table.
+});
+
 mainDB.on('populate', () => {
     mainDB.theme.put(ThemeFactory());
 })
@@ -101,6 +118,7 @@ class AppContainer extends React.Component {
             castChangeMap: { uid: castChangeId }, // Maps RoleId's to CastMemberId's
             orchestraChangeMap: { uid: orchestraChangeId }, // Maps OrchestraRoleIds to OrchestraMemberIds.
             slides: [],
+            presets: [],
             orchestraMembers: [],
             orchestraRoles: [],
             selectedSlideId: -1,
@@ -258,6 +276,21 @@ class AppContainer extends React.Component {
             log.error(error);
         })
 
+        // Pull Down Presets.
+        log.info("Pulling down presets");
+        mainDB.presets.toArray().then( result => {
+            if (result.length > 0) {
+                let presets = [];
+                result.forEach( item => {
+                    presets.push( item );
+                })
+                this.setState({presets: presets});
+            }
+        }).catch(error => {
+            log.error(error);
+        })
+
+
         // Pull Down Cast Members.
         log.info("Pulling down Cast members");
         mainDB.castMembers.orderBy('name').toArray().then(result => {
@@ -407,6 +440,7 @@ class AppContainer extends React.Component {
             this.setState({
                 castChangeMap: data.castChangeMap,
                 orchestraChangeMap: data.orchestraChangeMap,
+                presets: data.presets,
             })
 
             mainDB.castChangeMap.update(castChangeId, data.castChangeMap)
@@ -641,6 +675,7 @@ class AppContainer extends React.Component {
             orchestraMembers: [...this.state.orchestraMembers],
             orchestraRoles: [...this.state.orchestraRoles],
             orchestraChangeMap: {...this.state.orchestraChangeMap},
+            presets: [...this.state.presets],
         }
     }
 
@@ -883,6 +918,7 @@ class AppContainer extends React.Component {
             orchestraRoles: state.orchestraRoles,
             theme: state.theme,
             fonts: state.fonts,
+            presets: state.presets,
         }
     }
 
@@ -901,6 +937,7 @@ class AppContainer extends React.Component {
         deleteRequests.push(mainDB.orchestraRoles.clear());
         deleteRequests.push(mainDB.fonts.clear());
         deleteRequests.push(mainDB.showfileInfo.clear());
+        deleteRequests.push(mainDB.presets.clear());
 
         Promise.all(deleteRequests).then(() => {
             let bulkPutRequests = [];
@@ -918,6 +955,7 @@ class AppContainer extends React.Component {
             bulkPutRequests.push(mainDB.orchestraRoles.bulkPut(state.orchestraRoles));
             bulkPutRequests.push(mainDB.fonts.bulkPut(state.fonts));
             bulkPutRequests.push(mainDB.showfileInfo.bulkPut([newShowfileInfo]));
+            bulkPutRequests.push(mainDB.presets.bulkPut(state.presets));
 
             Promise.all(bulkPutRequests).then( () => {
                 this.setState({
@@ -933,6 +971,7 @@ class AppContainer extends React.Component {
                     orchestraRoles: state.orchestraRoles,
                     theme: state.theme,
                     fonts: state.fonts,
+                    presets: state.presets,
                 });
 
             }).catch( error => {
