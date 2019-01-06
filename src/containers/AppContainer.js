@@ -224,6 +224,7 @@ class AppContainer extends React.Component {
         this.postGeneralSnackbar = this.postGeneralSnackbar.bind(this);
         this.enterPresentationMode = this.enterPresentationMode.bind(this);
         this.leavePresentationMode = this.leavePresentationMode.bind(this);
+        this.playNextSlide = this.playNextSlide.bind(this);
     }
 
     componentDidMount() {
@@ -488,6 +489,14 @@ class AppContainer extends React.Component {
         }
     }
 
+    componentWillUpdate(nextProps, nextState) {
+        if (this.state.isInPresentationMode === true && this.state.theme.holdTime !== nextState.theme.holdTime) {
+            // Hold Time has Changed. Reset Interval timer to new hold Time.
+            clearInterval(this.presentationInterval);
+            this.presentationInterval = setInterval(this.playNextSlide, nextState.theme.holdTime * 1000);
+        }
+    }
+
     render() {
         return (
             <MuiThemeProvider theme={muiTheme}>
@@ -722,12 +731,13 @@ class AppContainer extends React.Component {
             selectedSlideId: this.state.slides[0] !== undefined ? this.state.slides[0].uid : -1,
         })
 
-        this.presentationInterval = setInterval(() => {
-            if (this.state.isPlaying) {
-                this.setState({ selectedSlideId: this.getNextSlideId(this.state.selectedSlideId, this.state.slides) });
-            }
+        this.presentationInterval = setInterval(this.playNextSlide , this.state.theme.holdTime * 1000);
+    }
 
-        }, this.state.theme.holdTime * 1000);
+    playNextSlide() {
+        if (this.state.isPlaying) {
+            this.setState({ selectedSlideId: this.getNextSlideId(this.state.selectedSlideId, this.state.slides) });
+        }
     }
 
     leavePresentationMode() {
