@@ -71,7 +71,7 @@ let getSlideContentsJSX = (slide, castMembers, castChangeMap, roles, theme) => {
 
             if (castMember === undefined ) {
                 // Cast Member can't be found.
-                return (<div> Cast Member not Found </div>);
+                return null;
             }
 
             return (
