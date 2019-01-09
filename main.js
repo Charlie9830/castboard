@@ -20,6 +20,13 @@ RemoteServer.on("receive-data", handleReceiveData);
 RemoteServer.on("playback-action", handlePlaybackAction);
 RemoteServer.on("control-action", handleControlAction);
 RemoteServer.on("receive-show-file", handleReceiveShowFile);
+RemoteServer.on("connection-dropped", handleRemoteConnectionDropped)
+
+function handleRemoteConnectionDropped() {
+  log.info('Connection to remote dropped. Sending play command');
+  
+  mainWindow.webContents.send('playback-action', 'play');
+}
 
 function handleReceiveShowFile(showfile) {
   if (showfile !== undefined) {

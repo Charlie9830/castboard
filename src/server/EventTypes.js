@@ -5,6 +5,7 @@ const EventTypes = {
     playbackAction: 'playback-action',
     controlAction: 'control-action',
     receiveShowFile: 'receive-show-file',
+    connectionDropped: 'connection-dropped',
 }
 
 module.exports = EventTypes;

@@ -16,7 +16,6 @@ class Server extends EventEmitter {
         super();
 
         // Method Bindings.
-        this.handleRootRequest = this.handleRootRequest.bind(this);
         this.handleDataRequest = this.handleDataRequest.bind(this);
         this.handleDataPost = this.handleDataPost.bind(this);
         this.handlePlaybackPost = this.handlePlaybackPost.bind(this);
@@ -25,9 +24,11 @@ class Server extends EventEmitter {
         this.handleControlPost = this.handleControlPost.bind(this);
         this.handleShowFilePost = this.handleShowFilePost.bind(this);
         this.handleGetPing = this.handleGetPing.bind(this);
+        this.handleHeartbeatPost = this.handleHeartbeatPost.bind(this);
 
         // Class Storage.
         this.electronLogFilePath = "";
+        this.heartbeatTimeoutId = -1;
 
         // Server Setup.
         App.use(function(req, res, next) {
@@ -40,9 +41,9 @@ class Server extends EventEmitter {
         App.use(bodyParser.urlencoded({ extended: true }));
         App.use(bodyParser.json());
 
-        // Root
-        Router.get('/', this.handleRootRequest);
+        // Pings and Heartbeats.
         Router.get('/ping', this.handleGetPing);
+        Router.post('/heartbeat', this.handleHeartbeatPost)
 
         // Cast/Orchestra Change Data.
         Router.get('/data', this.handleDataRequest);
@@ -68,6 +69,17 @@ class Server extends EventEmitter {
         App.listen(Port);
 
         console.log("Server is listening on Port " + Port);
+    }
+
+    handleHeartbeatPost(req, res) {
+        // If a heartbeat is not received within 10 seconds. Signal to the renderer that the connection has been dropped.
+        res.sendStatus(200);
+
+        clearTimeout(this.heartbeatTimeoutId);
+        this.heartbeatTimeoutId = setTimeout(() => {
+            this.emit(EventTypes.connectionDropped)
+        }
+            , 10 * 1000)
     }
 
     handleGetPing(req, res) {
@@ -138,9 +150,6 @@ class Server extends EventEmitter {
         this.getDataFromElectronAsync().then( data => {
             res.json(data);
         })
-    }
-
-    handleRootRequest(req, res) {
     }
 
     getDataFromElectronAsync() {
