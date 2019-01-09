@@ -1,7 +1,7 @@
 {
   "name": "castboard",
   "version": "1.0.0",
-  "description": "Minimal and modern react+electron+webpack boilerplate",
+  "description": "Castboard display system",
   "author": "Charlie Hall",
   "homepage": "https://github.com/Charlie9830/",
   "repository": {
