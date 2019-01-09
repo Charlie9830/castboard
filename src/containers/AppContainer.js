@@ -447,6 +447,12 @@ class AppContainer extends React.Component {
             mainDB.castChangeMap.update(castChangeId, data.castChangeMap)
             mainDB.orchestraChangeMap.update(orchestraChangeId, data.orchestraChangeMap);
 
+            mainDB.presets.clear().then( () => {
+                mainDB.presets.bulkPut(data.presets);
+            }).catch( error => {
+                log.error(error);
+            })
+
             this.setRemoteServerStatusSnackbar("New Cast/Orchestra change received");
         })
 
