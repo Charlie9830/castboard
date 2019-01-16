@@ -701,7 +701,8 @@ class AppDrawer extends React.Component {
                         <ListItemText primary={role.name} />
                         <ListItemSecondaryAction>
                             <CastMemberSelect castMembers={this.props.castMembers}
-                            value={GetCastIdFromMap(this.props.castChangeMap, role.uid)} />
+                            value={GetCastIdFromMap(this.props.castChangeMap, role.uid)}
+                            onChange={(e) => {this.props.onCastChange(role.uid, e.target.value)}} />
                         </ListItemSecondaryAction>
                     </ListItem>
                 )  
