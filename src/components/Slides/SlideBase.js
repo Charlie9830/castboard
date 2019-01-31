@@ -14,7 +14,7 @@ let SlideBase = (props) => {
             right: 0,
             bottom: 0,
             zIndex: -1,
-            filter: 'blur(0.75px)',
+            filter: 'blur(1.5px)',
             backgroundImage: `url(data:image/jpg;base64,${props.theme.backgroundImage})`,
             backgroundRepeat: 'no-repeat',
             backgroundPosition: 'center center',

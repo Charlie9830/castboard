@@ -18,7 +18,7 @@ let CastMember = (props) => {
     let headshotStyle = {
         flexShrink: '1',
         objectFit: 'cover',
-        filter: 'blur(0.25px)',
+        filter: 'blur(0.75px)',
         width: getHeadshotDimensions(props.billing).width,
         height: getHeadshotDimensions(props.billing).height,
         borderColor: props.theme.headshotBorderColor,
