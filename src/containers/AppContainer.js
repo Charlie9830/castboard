@@ -82,13 +82,18 @@ mainDB.version(3).stores({
 });
 
 mainDB.on('populate', () => {
-    mainDB.theme.put(ThemeFactory());
+    populateDatabase();
 })
+
+const populateDatabase = () => {
+    mainDB.theme.put(ThemeFactory());
+}
 
 const castChangeId = "0";
 const themeId = "0";
 const orchestraChangeId = "0";
 const showfileInfoId = "0";
+const initialShowfileName = "show1";
 
 const muiTheme = createMuiTheme({
     palette: {
@@ -109,8 +114,8 @@ class AppContainer extends React.Component {
         super(props);
 
         // State.
-        this.state = {
-            showfileInfo: ShowfileInfoFactory(""),
+        this.initialState = {
+            showfileInfo: ShowfileInfoFactory(initialShowfileName),
             castMembers: [],
             castGroups: [],
             roles: [],
@@ -134,6 +139,13 @@ class AppContainer extends React.Component {
                 onContinue: null,
                 onCancel: null,
             },
+            confirmationDialog: {
+                open: false,
+                title: '',
+                message: '',
+                onAffirmative: null,
+                onNegative: null,
+            },
             isFontStyleClipboardSnackbarOpen: false,
             appContext: {...AppContextDefaultValue, setFontStyleClipboard: (newValue) => {this.handleSetFontStyleClipboard(newValue)} },
             isInPresentationMode: false,
@@ -146,6 +158,8 @@ class AppContainer extends React.Component {
             fonts: [],
             generalSnackbar: { open: false, type: 'info', message: "", onClose: () => {} }
         }
+
+        this.state = this.initialState;
 
         this.presentationInterval = null;
         this.powerSaveBlockerId = -1;
@@ -210,7 +224,8 @@ class AppContainer extends React.Component {
         this.handleAssociateFontStyleChange = this.handleAssociateFontStyleChange.bind(this);
         this.handleMusicianFontStyleChange = this.handleMusicianFontStyleChange.bind(this);
         this.handleSaveButtonClick = this.handleSaveButtonClick.bind(this);
-        this.unpackageState = this.unpackageState.bind(this);
+        this.openLocalShowfile = this.openLocalShowfile.bind(this);
+        this.openRemoteShowfile = this.openRemoteShowfile.bind(this);
         this.handleOpenButtonClick = this.handleOpenButtonClick.bind(this);
         this.handleReorderSlideButtonClick = this.handleReorderSlideButtonClick.bind(this);
         this.handleHoldTimeChange = this.handleHoldTimeChange.bind(this);
@@ -225,6 +240,8 @@ class AppContainer extends React.Component {
         this.enterPresentationMode = this.enterPresentationMode.bind(this);
         this.leavePresentationMode = this.leavePresentationMode.bind(this);
         this.playNextSlide = this.playNextSlide.bind(this);
+        this.handleNewShowButtonClick = this.handleNewShowButtonClick.bind(this);
+        this.resetState = this.resetState.bind(this);
     }
 
     componentDidMount() {
@@ -457,8 +474,7 @@ class AppContainer extends React.Component {
         })
 
         ipcRenderer.on('receive-show-file', (event, showfile) => {
-            let fileName = showfile.fileName;
-            this.unpackageState(showfile.data);
+            this.openRemoteShowfile(showfile.data);
 
             this.postGeneralSnackbar("info", "New Showfile Received");
         })
@@ -594,10 +610,52 @@ class AppContainer extends React.Component {
                         fontNameDialog={this.state.fontNameDialog}
                         generalSnackbar={this.state.generalSnackbar}
                         showfileInfo={this.state.showfileInfo}
+                        confirmationDialog={this.state.confirmationDialog}
+                        onNewShowButtonClick={this.handleNewShowButtonClick}
                         />
                 </AppContext.Provider>
             </MuiThemeProvider>
         )
+    }
+
+    handleNewShowButtonClick() {
+        let onNegative = () => {
+            this.setState({
+                confirmationDialog: {
+                    ...this.state.confirmationDialog,
+                    open: false,
+                    onAffirmative: null,
+                    onNegative: null,
+                }
+            })
+        }
+
+        let onAffirmative = () => {
+            this.setState({
+                confirmationDialog: {
+                    ...this.state.confirmationDialog,
+                    open: false,
+                    onAffirmative: null,
+                    onNegative: null,
+                }
+            })
+
+            this.wipeDatabase().then( () => {
+                this.resetState();
+
+                mainDB.showfileInfo.put(ShowfileInfoFactory(initialShowfileName));
+            })   
+        }
+
+        this.setState({
+            confirmationDialog: {
+                open: true,
+                title: "Create new Show?",
+                message: "Any unsaved changes will be lost, are you sure you want to continue?",
+                onAffirmative: onAffirmative,
+                onNegative: onNegative,
+            }
+        })
     }
 
     handleAttachFontButtonClick() {
@@ -886,7 +944,7 @@ class AppContainer extends React.Component {
                 jetpack.readAsync(filePath, "json").then( result => {
                     if (result !== undefined) {
                         let showfileName = path.basename(filePath, '.json'); 
-                        this.unpackageState(result, showfileName);
+                        this.openLocalShowfile(result, showfileName);
                         
                         this.postGeneralSnackbar("info", "Show loaded successfully");
                     }
@@ -938,24 +996,41 @@ class AppContainer extends React.Component {
         }
     }
 
-    unpackageState(state, showFileName) {
-        let deleteRequests = [];
+    resetState() {
+        this.setState(this.initialState);
+    }
 
-        deleteRequests.push(mainDB.castMembers.clear());
-        deleteRequests.push(mainDB.castGroups.clear());
-        deleteRequests.push(mainDB.roles.clear());
-        deleteRequests.push(mainDB.roleGroups.clear());
-        deleteRequests.push(mainDB.castChangeMap.clear());
-        deleteRequests.push(mainDB.orchestraChangeMap.clear());
-        deleteRequests.push(mainDB.slides.clear());
-        deleteRequests.push(mainDB.theme.clear());
-        deleteRequests.push(mainDB.orchestraMembers.clear());
-        deleteRequests.push(mainDB.orchestraRoles.clear());
-        deleteRequests.push(mainDB.fonts.clear());
-        deleteRequests.push(mainDB.showfileInfo.clear());
-        deleteRequests.push(mainDB.presets.clear());
+    wipeDatabase(excludePresets) {
+        return new Promise((resolve, reject) => {
+            let deleteRequests = [];
 
-        Promise.all(deleteRequests).then(() => {
+            deleteRequests.push(mainDB.castMembers.clear());
+            deleteRequests.push(mainDB.castGroups.clear());
+            deleteRequests.push(mainDB.roles.clear());
+            deleteRequests.push(mainDB.roleGroups.clear());
+            deleteRequests.push(mainDB.castChangeMap.clear());
+            deleteRequests.push(mainDB.orchestraChangeMap.clear());
+            deleteRequests.push(mainDB.slides.clear());
+            deleteRequests.push(mainDB.theme.clear());
+            deleteRequests.push(mainDB.orchestraMembers.clear());
+            deleteRequests.push(mainDB.orchestraRoles.clear());
+            deleteRequests.push(mainDB.fonts.clear());
+            deleteRequests.push(mainDB.showfileInfo.clear());
+            
+            if (excludePresets !== true) {
+                deleteRequests.push(mainDB.presets.clear());
+            }
+
+            Promise.all(deleteRequests).then( () => { 
+                resolve();
+            }).catch(error => {
+                reject(error);
+            })
+        })
+    }
+
+    openLocalShowfile(state, showFileName) {
+        this.wipeDatabase(false).then(() => {
             let bulkPutRequests = [];
             let newShowfileInfo = ShowfileInfoFactory(showFileName);
 
@@ -972,6 +1047,58 @@ class AppContainer extends React.Component {
             bulkPutRequests.push(mainDB.fonts.bulkPut(state.fonts));
             bulkPutRequests.push(mainDB.showfileInfo.bulkPut([newShowfileInfo]));
             bulkPutRequests.push(mainDB.presets.bulkPut(state.presets));
+
+            Promise.all(bulkPutRequests).then( () => {
+                this.setState({
+                    showfileInfo: newShowfileInfo,
+                    castMembers: state.castMembers,
+                    castGroups: state.castGroups,
+                    roles: state.roles,
+                    roleGroups: state.roleGroups,
+                    castChangeMap: state.castChangeMap,
+                    orchestraChangeMap: state.orchestraChangeMap,
+                    slides: state.slides,
+                    orchestraMembers: state.orchestraMembers,
+                    orchestraRoles: state.orchestraRoles,
+                    theme: state.theme,
+                    fonts: state.fonts,
+                    presets: state.presets,
+                });
+
+            }).catch( error => {
+                console.error(error);
+            })
+        })
+    }
+
+    openRemoteShowfile(state) {
+        let mergeWithPresets = state.showfileInfo.showfileId === this.state.showfileInfo.showfileId;
+
+        this.wipeDatabase(mergeWithPresets).then(() => {
+            let bulkPutRequests = [];
+
+            bulkPutRequests.push(mainDB.castMembers.bulkPut(state.castMembers));
+            bulkPutRequests.push(mainDB.castGroups.bulkPut(state.castGroups));
+            bulkPutRequests.push(mainDB.roles.bulkPut(state.roles));
+            bulkPutRequests.push(mainDB.roleGroups.bulkPut(state.roleGroups));
+            bulkPutRequests.push(mainDB.castChangeMap.bulkPut([state.castChangeMap]));
+            bulkPutRequests.push(mainDB.orchestraChangeMap.bulkPut([state.orchestraChangeMap]));
+            bulkPutRequests.push(mainDB.slides.bulkPut(state.slides));
+            bulkPutRequests.push(mainDB.theme.bulkPut([state.theme]));
+            bulkPutRequests.push(mainDB.orchestraMembers.bulkPut(state.orchestraMembers));
+            bulkPutRequests.push(mainDB.orchestraRoles.bulkPut(state.orchestraRoles));
+            bulkPutRequests.push(mainDB.fonts.bulkPut(state.fonts));
+            bulkPutRequests.push(mainDB.showfileInfo.bulkPut([state.showfileInfo]));
+
+            if (mergeWithPresets === false) {
+                bulkPutRequests.push(mainDB.presets.bulkPut(state.presets));
+            }
+            
+            else {
+                state.presets.forEach( preset => {
+                    bulkPutRequests.put(preset);
+                })
+            }
 
             Promise.all(bulkPutRequests).then( () => {
                 this.setState({

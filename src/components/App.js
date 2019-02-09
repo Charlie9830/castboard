@@ -10,6 +10,7 @@ import '../assets/css/App.css';
 import { CssBaseline, AppBar, Toolbar, Typography, Button, Grid } from '@material-ui/core';
 import FontNameDialog from './FontNameDialog';
 import GeneralSnackbar from './GeneralSnackbar';
+import ConfirmationDialog from './ConfirmationDialog';
 
 class App extends Component {
   constructor(props) {
@@ -54,6 +55,14 @@ class App extends Component {
         onCancel={this.props.fontNameDialog.onCancel}
         />
 
+        <ConfirmationDialog
+        open={this.props.confirmationDialog.open}
+        title={this.props.confirmationDialog.title}
+        message={this.props.confirmationDialog.message}
+        onAffirmative={this.props.confirmationDialog.onAffirmative}
+        onNegative={this.props.confirmationDialog.onNegative}
+        />
+
         <div className="AppBarContainer">
           <AppBar position="relative">
             <Toolbar>
@@ -61,6 +70,7 @@ class App extends Component {
               <Grid container
               direction="row-reverse"
               justify="flex-start">
+                <Button color="secondary" onClick={this.props.onNewShowButtonClick}> New </Button>
                 <Button onClick={this.props.onSaveButtonClick}> Save </Button>
                 <Button onClick={this.props.onOpenButtonClick}> Open </Button>
                 <Typography style={{paddingRight: '32px'}} variant="h6" color="textSecondary" > {this.props.showfileInfo.name} </Typography>
