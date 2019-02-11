@@ -3,6 +3,7 @@ import PeopleIcon from '@material-ui/icons/People';
 import DeleteIcon from '@material-ui/icons/Delete';
 import AddPersonIcon from '@material-ui/icons/PersonAdd';
 import { List, ListItem, ListItemIcon, TextField, ListItemSecondaryAction, IconButton } from '@material-ui/core';
+import EditableListItem from './EditableListItem';
 
 let CastGroup = (props) => {
     return (

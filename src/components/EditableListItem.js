@@ -1,5 +1,7 @@
 import React from 'react';
-import { ListItem, Grid, ListItemSecondaryAction, ClickAwayListener } from '@material-ui/core';
+import { ListItem, Grid, ListItemSecondaryAction, ClickAwayListener, IconButton } from '@material-ui/core';
+import DoneIcon from '@material-ui/icons/Done';
+
 
 class EditableListItem extends React.Component {
     constructor(props) {
@@ -36,12 +38,21 @@ class EditableListItem extends React.Component {
             )
         }
         
+        let openSecondaryActions = this.props.isInputOpen ? ( 
+            <ListItemSecondaryAction> <IconButton onClick={() => { this.props.onInputClose()}}> <DoneIcon/> </IconButton> </ListItemSecondaryAction>
+        ) : null;
 
         return (
-                <ListItem onKeyPress={this.handleKeyPress} onMouseOver={() => { this.setState({ isMouseOver: true }) }} onMouseLeave={() => { this.setState({ isMouseOver: false }) }}
-                    style={{ paddingLeft: this.props.inset === true ? "64px" : 'inherit' }}>
+                <ListItem 
+                onKeyPress={this.handleKeyPress} 
+                onMouseOver={() => { this.setState({ isMouseOver: true }) }} 
+                onMouseLeave={() => { this.setState({ isMouseOver: false }) }}
+                onClick={() => { this.props.onClick()}}
+                    style={{ paddingLeft: this.props.inset === true ? "64px" : 'inherit'}}>
                     {listItemContents}
-                </ListItem>            
+
+                    {openSecondaryActions}
+                </ListItem>        
         )
     } 
 

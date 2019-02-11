@@ -964,15 +964,16 @@ class AppContainer extends React.Component {
 
         dialog.showSaveDialog(options, fileName =>  {
             if (fileName !== undefined) {
-                jetpack.writeAsync(fileName, this.packageState(this.state), {atomic: true}).then( () => {
-                    let showfileInfo = {...this.state.showfileInfo};
-                    let newName = path.basename(fileName, '.json');
-                    showfileInfo.name = newName;
-                    this.setState({showfileInfo: showfileInfo});
+                let upcomingState = {...this.state};
+                let newName = path.basename(fileName, '.json');
+                upcomingState.showfileInfo.name = newName;
+
+                jetpack.writeAsync(fileName, this.packageState(upcomingState), {atomic: true}).then( () => {
+                    this.setState({showfileInfo: upcomingState.showfileInfo});
 
                     mainDB.showfileInfo.update(showfileInfoId, {name: newName});
 
-                    this.postGeneralSnackbar("info", "Show saved successfully");
+                    this.postGeneralSnackbar("info", `${newName} saved successfully`);
                 })
             }
         });
@@ -981,6 +982,7 @@ class AppContainer extends React.Component {
     packageState(state) {
         return {
             version: "1",
+            showfileInfo: state.showfileInfo,
             castMembers: state.castMembers,
             castGroups: state.castGroups,
             roles: state.roles,
@@ -1000,7 +1002,7 @@ class AppContainer extends React.Component {
         this.setState(this.initialState);
     }
 
-    wipeDatabase(excludePresets) {
+    wipeDatabase() {
         return new Promise((resolve, reject) => {
             let deleteRequests = [];
 
@@ -1016,10 +1018,7 @@ class AppContainer extends React.Component {
             deleteRequests.push(mainDB.orchestraRoles.clear());
             deleteRequests.push(mainDB.fonts.clear());
             deleteRequests.push(mainDB.showfileInfo.clear());
-            
-            if (excludePresets !== true) {
-                deleteRequests.push(mainDB.presets.clear());
-            }
+            deleteRequests.push(mainDB.presets.clear());
 
             Promise.all(deleteRequests).then( () => { 
                 resolve();
@@ -1030,7 +1029,7 @@ class AppContainer extends React.Component {
     }
 
     openLocalShowfile(state, showFileName) {
-        this.wipeDatabase(false).then(() => {
+        this.wipeDatabase().then(() => {
             let bulkPutRequests = [];
             let newShowfileInfo = ShowfileInfoFactory(showFileName);
 
@@ -1074,7 +1073,7 @@ class AppContainer extends React.Component {
     openRemoteShowfile(state) {
         let mergeWithPresets = state.showfileInfo.showfileId === this.state.showfileInfo.showfileId;
 
-        this.wipeDatabase(mergeWithPresets).then(() => {
+        this.wipeDatabase().then(() => {
             let bulkPutRequests = [];
 
             bulkPutRequests.push(mainDB.castMembers.bulkPut(state.castMembers));
@@ -1090,19 +1089,40 @@ class AppContainer extends React.Component {
             bulkPutRequests.push(mainDB.fonts.bulkPut(state.fonts));
             bulkPutRequests.push(mainDB.showfileInfo.bulkPut([state.showfileInfo]));
 
+            let newPresets = [];
+
             if (mergeWithPresets === false) {
                 bulkPutRequests.push(mainDB.presets.bulkPut(state.presets));
+                newPresets = state.presets;
+
+                log.info("Remote showfileId did not match currently loaded showfileId. Overwriting Presets");
             }
             
             else {
-                state.presets.forEach( preset => {
-                    bulkPutRequests.put(preset);
+                let incomingPresets = [...state.presets];
+                let existingPresets = [...this.state.presets];
+
+                incomingPresets.forEach( preset => {
+                    let existingIndex = existingPresets.findIndex( item => { return item.uid === preset.uid });
+                    
+                    if (existingIndex !== -1) {
+                        // Newer preset found.
+                        existingPresets[existingIndex] = preset;
+                    }
+
+                    else {
+                        existingPresets.push(preset);
+                    }
                 })
+
+                newPresets = existingPresets;
+                
+                log.info("Remote showfileId matches currently loaded showfileId. Merging presets");
             }
 
             Promise.all(bulkPutRequests).then( () => {
                 this.setState({
-                    showfileInfo: newShowfileInfo,
+                    showfileInfo: state.showfileInfo,
                     castMembers: state.castMembers,
                     castGroups: state.castGroups,
                     roles: state.roles,
@@ -1114,8 +1134,10 @@ class AppContainer extends React.Component {
                     orchestraRoles: state.orchestraRoles,
                     theme: state.theme,
                     fonts: state.fonts,
-                    presets: state.presets,
+                    presets: newPresets,
                 });
+
+                log.info("Showfile received from Remote");
 
             }).catch( error => {
                 console.error(error);
